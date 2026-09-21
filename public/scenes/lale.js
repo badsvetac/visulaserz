@@ -15,7 +15,7 @@ float sq(float x) { return x * x; }
 // one petal: a pointed lens hinged at its base, q.y running 0 at the hinge to ph at the tip
 float petal(vec2 q, float ph, float pw) {
   float s = q.y / ph;
-  if (s < 0.0 || s > 1.0) return 0.0;
+  if (s <= 0.0 || s >= 1.0) return 0.0;          // the ends are exactly hinge-width, and 0/0 there is a NaN
   float hw = pw * sqrt(max(sin(PI * s), 0.0)) * (1.0 - 0.42 * s);
   return 1.0 - ss(hw * 0.70, hw, abs(q.x));
 }
@@ -106,7 +106,7 @@ void main() {
   // petals earlier gusts tore loose
   for (int i = 0; i < 6; i++) {
     float fi = float(i);
-    float life = fract(hash11(fi * 2.3 + 1.0) + uTravel * 0.010 * (0.6 + hash11(fi * 5.1)));
+    float life = fract(hash11(fi * 2.3 + 1.0) + uTravel * 0.075 * (0.6 + hash11(fi * 5.1)));
     vec2 pc = vec2(mix(-aspect - 0.15, aspect + 0.15, life),
                    -0.28 + 0.80 * hash11(fi * 3.7) + 0.10 * sin(life * 13.0 + fi));
     vec2 pv = rot(life * 9.0 + fi) * (p - pc) / 0.045;

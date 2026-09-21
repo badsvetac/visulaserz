@@ -20,7 +20,7 @@ void main() {
   p.x -= uBalance * 0.05;
   vec3 ro = vec3(0.0, 0.0, -3.4);
   vec3 rd = normalize(vec3(p, 2.0));
-  vec3 sunDir = normalize(vec3(-0.70, 0.32, -0.45));       // sun off to our left, so the right third of the disc is night
+  vec3 sunDir = normalize(vec3(-0.90, 0.34, -0.26));       // sun off to our left and well behind, so the right third of the disc is night
   vec3 haze = mix(vec3(0.70, 0.80, 1.0), pal(0.55), 0.45);
 
   vec2 g = p * 46.0;

@@ -6,7 +6,7 @@
 // foreground pool on the bass and the thin far ones crowding into the treble. The band (read from
 // the long-release spectrum, because water has inertia) sets how high that pool stands in its basin
 // and how hard it sheets over its own rim onto the terrace below. A beat tips a wave over the crest
-// and it arrives one terrace at a time, 42 ms apart, so the whole cascade runs downhill and is spent
+// and it arrives one terrace at a time, 27 ms apart, so the whole cascade runs downhill and is spent
 // well inside half a second. Low sun, blinding calcium, steam drifting off the hot water.
 const frag = `
 const float NT = 9.0;
@@ -26,10 +26,12 @@ float rimY(float fi, float x) {
 }
 
 // The beat's surge starts at the crest and reaches terrace fi a little later; rebuilt from uBeatAge
-// alone so it never needs memory, and the last terrace is done before the next beat can land.
+// alone so it never needs memory. 27 ms a step and a short tail: the wave has crossed all nine
+// terraces and died inside half a second, so even a fast track still hands the near pool — the
+// biggest thing on screen — every single beat instead of cutting the cascade off halfway down.
 float surgeAt(float fi) {
-  float a = uBeatAge - (NT - fi) * 0.042;
-  return step(0.0, a) * ss(0.0, 0.03, a) * exp(-max(a, 0.0) * 6.5);
+  float a = uBeatAge - (NT - fi) * 0.027;
+  return step(0.0, a) * ss(0.0, 0.03, a) * exp(-max(a, 0.0) * 10.0);
 }
 
 void main() {
@@ -53,7 +55,10 @@ void main() {
     int idx = 8 - k;                                                // paint far to near; nearer rims overdraw
     float fi = float(idx);
     float yBack = rimY(fi + 1.0, p.x);
-    if (p.y > yBack) continue;
+    // A scalloped rim drawn with a hard test staircases badly, and this scene is nothing but rims.
+    // Two pixels of coverage against whatever is already there — the terrace behind, or the sky.
+    float cov = ss(yBack + 0.0025, yBack - 0.0025, p.y);
+    if (cov <= 0.0) continue;
     float yFront = rimY(fi, p.x);
     float tt = clamp((p.y - yFront) / max(yBack - yFront, 1e-3), 0.0, 1.0);   // 0 at this pool's own lip, 1 at the wall behind
     float wx = p.x * (1.0 + fi * 0.55) + fi * 2.9;
@@ -93,7 +98,7 @@ void main() {
     }
     c += vec3(1.0, 0.97, 0.90) * ss(0.955, 1.0, tt) * (0.45 + 0.45 * sheet);   // the lit lip, brightest thing here
     c = mix(c, vec3(1.0, 0.975, 0.94), ss(2.0, 8.5, fi) * 0.55);     // the far terraces bleach into the haze
-    col = c;
+    col = mix(col, c, cov);
   }
 
   // steam off the hot water, drifting on the cruise clock

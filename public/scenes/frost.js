@@ -7,10 +7,10 @@
 // takes the bass, the rest go round into the treble, so the crystal leans towards whatever the
 // music is doing. The length is driven by slow() rather than spec(), because frost accretes — it
 // shoots out and pulls back reluctantly. Every beat drops a fresh seed on the glass and it grows
-// in under half a second; the five before it are rebuilt from uBeatCount - k, keep the size they
-// reached, and fade back as newer ones crowd them out. Nothing here makes its own light: the ice
-// is only as bright as the window behind it, which is why the frost glows over the lit windows
-// and goes to grey over the roofs.
+// in under half a second; the five before it are rebuilt from uBeatCount - k — same place, same
+// branches, arms still answering their band — and fade back as newer ones crowd them out. Nothing
+// here makes its own light: the ice is only as bright as the window behind it, which is why the
+// frost glows over the lit windows and goes to grey over the roofs.
 const frag = `
 float gBand[6];                 // one spectrum band per arm, read once per pixel
 
@@ -33,7 +33,7 @@ float armField(vec2 q, float L, float sd) {
   float sp = 0.026;
   float j0 = floor(q.x / sp);
   for (int k = 0; k < 4; k++) {
-    float bx = (j0 + 1.0 - float(k)) * sp;
+    float bx = (j0 - float(k)) * sp;                          // roots ahead of the pixel can never win, so start at j0
     float rem = L - bx;
     if (bx > 0.010 && rem > 0.006) {
       float h = hash11(bx * 137.0 + sd * 3.3);
@@ -49,16 +49,17 @@ float armField(vec2 q, float L, float sd) {
 // seam between sectors.
 float crystal(vec2 p, vec2 c, float R, float sd, float grow) {
   vec2 v = p - c;
-  if (dot(v, v) > R * R * 2.4) return 1e3;
+  if (dot(v, v) > R * R * 3.6) return 1e3;                    // wide enough that the halo has died before the cull
   float f = atan(v.y, v.x) / (TAU / 6.0);
   float i0 = floor(f + 0.5);
   float d = 1e3;
   for (int k = 0; k < 2; k++) {
     float idx = i0 + (k == 0 ? 0.0 : (f < i0 ? -1.0 : 1.0));
-    int bi = int(clamp(mod(idx, 6.0), 0.0, 5.0));
-    float L = max(R * grow * (0.26 + 0.82 * gBand[bi]) * (0.78 + 0.44 * hash11(sd * 5.77 + idx * 1.7)), 0.004);
-    vec2 rv = rot(-idx * (TAU / 6.0)) * v;
-    d = min(d, armField(vec2(rv.x, abs(rv.y)), L, sd + idx));
+    float ia = mod(idx, 6.0);                                 // +3 and -3 are the same arm, the one at 180 degrees:
+    int bi = int(clamp(ia, 0.0, 5.0));                        // seed it identically from either side or it splits down the spine
+    float L = max(R * grow * (0.26 + 0.82 * gBand[bi]) * (0.78 + 0.44 * hash11(sd * 5.77 + ia * 1.7)), 0.004);
+    vec2 rv = rot(-ia * (TAU / 6.0)) * v;
+    d = min(d, armField(vec2(rv.x, abs(rv.y)), L, sd + ia));
   }
   return d;
 }

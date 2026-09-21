@@ -13,6 +13,7 @@
 // Two bare trees and a hedge line sit under the dusk gradient to give the cloud its scale.
 const frag = `
 const float HZ = -0.52;
+const float BANDS = 14.0;   // the flock is read as this many rows, not as one bin per pixel row
 
 float seg(vec2 p, vec2 a, vec2 b, float w0, float w1) {
   vec2 pa = p - a, ba = b - a;
@@ -59,9 +60,15 @@ void main() {
   vec2 fc = vec2(0.30 * sin(uTime * 0.08) + lean * 0.26, 0.24 + 0.06 * sin(uTime * 0.11) - lean * 0.05);
   vec2 u = rot(-lean * 0.38) * (p - fc);
 
-  float bandY = clamp(u.y * 0.80 + 0.46, 0.0, 1.0);  // bottom of the cloud = bass, top = treble
-  float band = spec(0.02 + bandY * 0.86);
-  float slowB = slow(0.02 + bandY * 0.86);
+  // Rows, not pixels. Read straight off u.y, two neighbouring pixel rows land on two unrelated
+  // bins, and the sideways slide below then tears the cloud into horizontal noise. So the height
+  // is cut into BANDS rows and eased between them: the slide varies over the depth of a fold.
+  float rowF = clamp(u.y * 0.80 + 0.46, 0.0, 1.0) * BANDS;   // bottom of the cloud = bass, top = treble
+  float row0 = floor(rowF), rowT = fract(rowF);
+  rowT = rowT * rowT * (3.0 - 2.0 * rowT);
+  float y0 = 0.02 + row0 / BANDS * 0.86, y1 = 0.02 + (row0 + 1.0) / BANDS * 0.86;
+  float band = mix(spec(y0), spec(y1), rowT);
+  float slowB = mix(slow(y0), slow(y1), rowT);
 
   // dusk: amber on the deck, mauve above it, indigo overhead
   float up = ss(HZ, 1.0, p.y);
@@ -73,7 +80,8 @@ void main() {
   vec2 sg = p * 34.0;
   float sh = hash21(floor(sg));
   float st = ss(0.90, 1.0, sh) * (1.0 - ss(0.0, 0.30, length(fract(sg) - 0.5)));
-  col += vec3(0.82, 0.88, 1.0) * st * ss(0.25, 0.85, p.y) * (0.45 + 0.55 * sin(uTime * 2.3 + sh * 30.0));
+  // the twinkle bottoms out at zero: swung negative it would punch black specks into the dusk
+  col += vec3(0.82, 0.88, 1.0) * st * ss(0.25, 0.85, p.y) * (0.50 + 0.50 * sin(uTime * 2.3 + sh * 30.0));
 
   // the bunching wave crossing the flock along its new heading; gone in about a third of a second
   float sw = exp(-abs(u.x - (-2.0 + uBeatAge * 11.0)) * 2.0) * exp(-uBeatAge * 2.2) * uPunch;

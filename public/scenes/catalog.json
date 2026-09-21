@@ -320,6 +320,35 @@
    "thumb": "thumbs/orrery.webp"
   },
   {
+   "id": "jupiter",
+   "name": "Jupiter",
+   "group": "Journey",
+   "blurb": "Gas giant up close; every cloud belt runs on its own band, beats fire lightning on the night side",
+   "tags": [
+    "space",
+    "nature",
+    "organic"
+   ],
+   "energy": 0.4,
+   "file": "jupiter.js",
+   "thumb": null
+  },
+  {
+   "id": "pamukkale",
+   "name": "Pamukkale",
+   "group": "Journey",
+   "blurb": "Travertine terraces stepping downhill; each pool rides its own band, beats send a spill cascading",
+   "tags": [
+    "turkish",
+    "water",
+    "nature",
+    "light"
+   ],
+   "energy": 0.35,
+   "file": "pamukkale.js",
+   "thumb": null
+  },
+  {
    "id": "aurora",
    "name": "Aurora",
    "group": "Vibe",
@@ -584,6 +613,48 @@
    "thumb": "thumbs/meadow.webp"
   },
   {
+   "id": "frost",
+   "name": "Frost",
+   "group": "Vibe",
+   "blurb": "Dendrites take the window, one arm per band, a new crystal seeded on every beat",
+   "tags": [
+    "nature",
+    "city",
+    "calm"
+   ],
+   "energy": 0.28,
+   "file": "frost.js",
+   "thumb": null
+  },
+  {
+   "id": "lale",
+   "name": "Lale",
+   "group": "Vibe",
+   "blurb": "Tulip bed under a gold-leaf dusk; one tulip per band, each beat gusts across the row",
+   "tags": [
+    "turkish",
+    "nature",
+    "organic"
+   ],
+   "energy": 0.35,
+   "file": "lale.js",
+   "thumb": null
+  },
+  {
+   "id": "murmuration",
+   "name": "Murmuration",
+   "group": "Vibe",
+   "blurb": "Starlings at dusk; each row of the flock breathes on its own band, beats snap the heading",
+   "tags": [
+    "nature",
+    "organic",
+    "light"
+   ],
+   "energy": 0.5,
+   "file": "murmuration.js",
+   "thumb": null
+  },
+  {
    "id": "vinyl",
    "name": "Vinyl",
    "group": "Things",
@@ -752,6 +823,20 @@
    "energy": 0.3,
    "file": "nazar.js",
    "thumb": "thumbs/nazar.webp"
+  },
+  {
+   "id": "cini",
+   "name": "Çini",
+   "group": "Things",
+   "blurb": "An Iznik tile wall; eight blooms take eight bands, beats sweep light across the glaze",
+   "tags": [
+    "turkish",
+    "geometric",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "cini.js",
+   "thumb": null
   },
   {
    "id": "chladni",
@@ -950,6 +1035,48 @@
    "energy": 0.6,
    "file": "circuit.js",
    "thumb": "thumbs/circuit.webp"
+  },
+  {
+   "id": "apollonian",
+   "name": "Apollonian",
+   "group": "Lab",
+   "blurb": "Circles packed into the gaps between circles, one frequency band per nesting depth",
+   "tags": [
+    "geometric",
+    "abstract",
+    "science"
+   ],
+   "energy": 0.55,
+   "file": "apollonian.js",
+   "thumb": null
+  },
+  {
+   "id": "lorenz",
+   "name": "Lorenz",
+   "group": "Lab",
+   "blurb": "Butterfly attractor traced live; bass bends rho, mids sigma, beats throw the beam to the other lobe",
+   "tags": [
+    "science",
+    "abstract",
+    "light"
+   ],
+   "energy": 0.55,
+   "file": "lorenz.js",
+   "thumb": null
+  },
+  {
+   "id": "truchet",
+   "name": "Truchet",
+   "group": "Lab",
+   "blurb": "Interlocking arc tiles; every column is one band, beats flip a diagonal wave and re-route the loops",
+   "tags": [
+    "geometric",
+    "abstract",
+    "analyser"
+   ],
+   "energy": 0.55,
+   "file": "truchet.js",
+   "thumb": null
   }
  ]
 }

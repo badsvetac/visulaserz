@@ -13,14 +13,14 @@
 // On the beat the glaze catches the light: a specular sweep crosses the whole panel, and the
 // craquelure — the crack net left when glaze and body cooled at different rates — flares as it goes.
 const frag = `
-const float S = 0.78;                                    // tile pitch, in screen half-heights
+const float S = 0.95;                                    // tile pitch, in screen half-heights
 
 vec3 pig(float i) {
   vec3 c = i < 0.5 ? vec3(0.055, 0.130, 0.520)           // cobalt
          : i < 1.5 ? vec3(0.040, 0.505, 0.500)           // turquoise
          : i < 2.5 ? vec3(0.765, 0.160, 0.095)           // bolus red
-         :           vec3(0.935, 0.920, 0.855);          // the white slip ground
-  return mix(c, pal(i * 0.16 + 0.04), 0.16);
+         :           vec3(0.950, 0.935, 0.890);          // the white slip ground
+  return mix(c, pal(i * 0.16 + 0.04), i < 2.5 ? 0.16 : 0.06);   // the pigments take a little of the palette
 }
 float inked(float d) { return 1.0 - ss(0.0, 0.016, d); }         // a painted edge, soft like a brush
 float lined(float d) { return 1.0 - ss(0.004, 0.015, abs(d)); }  // the dark contour drawn round every motif
@@ -38,20 +38,19 @@ float craze(vec2 w) {                                    // voronoi edges: the g
   return sqrt(f2) - sqrt(f1);
 }
 
-// tulip: a bulb with a spire and two side lobes on its rim — it widens and lifts as its band rises
-float tul(vec2 m, float o) {
-  float body  = length(vec2(m.y / (0.125 + 0.030 * o), (m.x - 0.105) / 0.150)) - 1.0;
-  float spire = length(vec2(m.y / 0.040, (m.x - 0.215) / (0.070 + 0.022 * o))) - 1.0;
-  float lobeL = length(vec2((m.y - 0.090 - 0.020 * o) / 0.038, (m.x - 0.165) / 0.058)) - 1.0;
-  float lobeR = length(vec2((m.y + 0.090 + 0.020 * o) / 0.038, (m.x - 0.165) / 0.058)) - 1.0;
-  return min(min(body, spire), min(lobeL, lobeR));
-}
-// carnation: a fan of serrated petals, cut back to the calyx
-float carn(vec2 m, float o) {
-  vec2 v = m - vec2(0.030, 0.0);
+// tulip: the bulb is a trefoil — a point outward, two curling back at the sides, a pointed calyx
+// under it — stretched along its own axis. k < 1 gives the smaller copy painted inside it.
+float tul(vec2 m, float o, float k) {
+  vec2 v = (m - vec2(0.140, 0.0)) * vec2(0.66, 1.0);
   float ang = atan(v.y, v.x);
-  float rim = (0.150 + 0.055 * o) * cos(ang * 0.60) + 0.018 * cos(ang * 9.0);
-  return max(length(v) - rim, abs(ang) - 1.30);
+  return length(v) - k * (0.084 + 0.022 * o) * (1.0 + 0.44 * cos(ang * 3.0));
+}
+// carnation: a fan of serrated petals opening from the calyx, wider the louder its band
+float carn(vec2 m, float o, float k) {
+  vec2 v = m - vec2(-0.010, 0.0);
+  float ang = atan(v.y, v.x);
+  float rim = k * ((0.150 + 0.055 * o) * cos(ang * 0.40) + 0.020 * cos(ang * 13.0));   // five teeth
+  return max(length(v) - rim, abs(ang) - 1.25);
 }
 // saz leaf: lance-shaped, pinched to a point at both ends, bending away as it runs outward
 float saz(float rr, float y, float o) {
@@ -91,7 +90,7 @@ void main() {
   float d1 = abs(dep - 0.0875 - 0.052 * sin(ph)) - 0.020;
   float d2 = abs(dep - 0.0875 + 0.052 * sin(ph)) - 0.020;
   float over = step(0.0, cos(ph));                       // which ribbon is on top changes every crossing
-  float dp = length(vec2(dep - 0.0875, (fract(along * 4.0) - 0.5) * 0.25)) - 0.017;  // pearl in each loop
+  float dp = length(vec2(dep - 0.0875, (fract(along * 4.0) - 0.5) * 0.25)) - 0.023;  // pearl in each loop
   vec3 rum = pig(0.0) * (0.70 + 0.90 * uHigh);
   col = mix(col, rum, inked(d2) * inB);
   col = mix(col, vec3(0.04, 0.05, 0.12), lined(d2) * inB);
@@ -102,21 +101,23 @@ void main() {
   col = mix(col, vec3(0.04, 0.05, 0.12), lined(cd));
   col *= 1.0 - 0.30 * ss(0.978, 0.998, bd);              // the seam between two tiles
 
-  // saz leaves on the sector walls, painted first: they lie under the flowers
+  // saz leaves on the sector walls and the stems, painted first: they lie under the flowers
   float lt = clamp((r - 0.26) / 0.52, 0.0, 1.0);
   float dl = saz(r, ab * r, lb);
+  float dst = max(abs(af * r) - 0.010 * (1.0 - 0.6 * ss(0.28, 0.50, r)), max(0.28 - r, r - 0.50));  // the stem
+  col = mix(col, pig(0.0) * 0.75, inked(dst));
   col = mix(col, pig(1.0) * (0.70 + 0.60 * lb), inked(dl));
   col = mix(col, vec3(0.04, 0.05, 0.12), max(lined(dl), lined(ab * r - 0.16 * lt * lt) * inked(dl)));
 
   // the eight blooms: even sectors a tulip, odd sectors a carnation, each one on its own band
-  vec2 m = vec2(r - 0.46, af * r + 0.035 * (kb - 0.35));
-  float dm = odd < 0.5 ? tul(m, kb) : carn(m, kb);
-  float dh = length(m - vec2(0.105, 0.0)) - 0.034;       // the heart of the flower, the opposite pigment
+  vec2 m = vec2(r - 0.46, af * r + 0.035 * (kb - 0.35));           // the bloom leans as its band rises
+  float dm = odd < 0.5 ? tul(m, kb, 1.0) : carn(m, kb, 1.0);
+  float dh = odd < 0.5 ? tul(m, kb, 0.46) : carn(m, kb, 0.44);     // the same flower again, smaller, inside
   col = mix(col, (odd < 0.5 ? pig(2.0) : pig(0.0)) * (0.68 + 0.70 * kb), inked(dm));
   rel = max(rel, inked(dm) * (1.0 - odd));
-  col = mix(col, odd < 0.5 ? pig(1.0) : pig(2.0), inked(dh) * inked(dm));
-  rel = max(rel, inked(dh) * inked(dm) * odd);
-  col = mix(col, vec3(0.04, 0.05, 0.12), lined(dm));
+  col = mix(col, odd < 0.5 ? pig(1.0) : pig(2.0), inked(dh));
+  rel = max(rel, inked(dh) * odd);
+  col = mix(col, vec3(0.04, 0.05, 0.12), max(lined(dm), lined(dh)));
 
   // the rosette: four rings of eight petals, ring j opening and closing on its own band
   for (int j = 0; j < 4; j++) {
