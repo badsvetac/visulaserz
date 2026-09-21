@@ -299,8 +299,17 @@ async function cleanPartials(id) {
 function friendlyError(raw) {
   const line = (raw.split('\n').reverse().find((l) => l.startsWith('ERROR:')) || raw.split('\n').pop() || '').trim();
   const msg = line.replace(/^ERROR:\s*/, '').replace(/^\[[^\]]+\]\s*[A-Za-z0-9_-]{11}:\s*/, '');
-  if (/sign in|confirm you.?re not a bot|age/i.test(msg)) return 'YouTube wants a sign-in for this video, so it cannot be loaded here. Try a different upload of the track.';
+  // Two different walls that both say "sign in", and the advice for them is opposite. The bot
+  // check is about this CONNECTION: every video fails until it lifts, so "try another upload"
+  // sends the user on a pointless hunt. Age restriction is about this VIDEO, and another upload
+  // often works. The bot check has to be tested first because its text contains "sign in" too.
+  // (This used to match a bare /age/, which also caught "webpage" and "message" and reported
+  // ordinary network errors as sign-in walls.)
+  if (/confirm you.?re not a bot/i.test(msg)) return 'YouTube is asking this connection to sign in ("confirm you’re not a bot"). It is a temporary block on your network, not on this video: every video will fail until it lifts, usually within a day or two. Your saved tracks and files from disk still play.';
+  // Private videos say "Sign in if you have been granted access", so they go before the generic
+  // sign-in test or they are reported as age-restricted.
   if (/private video/i.test(msg)) return 'This video is private.';
+  if (/sign in|age[- ]restricted|confirm your age|inappropriate for some users/i.test(msg)) return 'YouTube wants a sign-in for this video (it is age-restricted), so it cannot be loaded here. Try a different upload of the track.';
   if (/unavailable|removed|terminated/i.test(msg)) return 'This video is unavailable.';
   if (/403|unable to download/i.test(msg)) return 'YouTube refused the download. Update yt-dlp with "npm run setup" and try again.';
   return msg || 'yt-dlp failed without an error message.';
