@@ -1,5 +1,7 @@
 import { el } from '../util.js';
 import { ECHO_DIVISIONS } from '../audio/engine.js';
+import { createGate, GATE_PATTERNS } from '../audio/gate.js';
+import { Knob } from './knob.js';
 import { makePad } from './pad.js';
 import { buildXYPad } from './xy-pad.js';
 
@@ -46,6 +48,28 @@ export function buildPerform({ engine, toast, lcdShow, onFxChange }) {
       start: () => { engine.setEchoOut(true); lcdShow('echo', 'OUT'); }, stop: () => { engine.setEchoOut(false); lcdShow('echo', 'IN'); } }),
   );
 
+  // ── trance gate ───────────────────────────────────────────────────────────
+  // Chops the music into a rhythm of its own. It runs on the audio clock, so it stays in
+  // time even when the picture stutters — and because the analyser sits after the effects,
+  // the scene breathes with every chop.
+  const gate = createGate(engine);
+  const gateValue = el('span', { class: 'cycle-value' }, GATE_PATTERNS[0].name);
+  const gateBtn = el('button', { class: 'cycle', type: 'button', title: 'A 16-step volume pattern in time with the track. Click to change, Shift-click to go back.' },
+    el('span', { class: 'cycle-label' }, 'Gate'), gateValue);
+  function setGate(index) {
+    gateValue.textContent = gate.setPattern((index + GATE_PATTERNS.length) % GATE_PATTERNS.length);
+    gateBtn.classList.toggle('is-active', gate.isOn);
+    lcdShow('gate', gateValue.textContent);
+  }
+  gateBtn.addEventListener('click', (e) => setGate(gate.patternIndex + (e.shiftKey ? -1 : 1)));
+  const gateDepth = new Knob({
+    id: 'gateDepth', label: 'Depth', min: 0, max: 1, def: 0.85, value: 0.85,
+    fmt: (v) => `${Math.round(v * 100)}%`,
+    onChange: (v) => gate.setDepth(v),
+    onTouch: (k) => lcdShow('gate depth', `${Math.round(k.value * 100)}%`),
+  });
+  const resyncBtn = el('button', { class: 'key key-ghost', type: 'button', title: 'Restart the pattern here — press it on a downbeat', onclick: () => { gate.resync(); lcdShow('gate', 'SYNC'); } }, 'Sync');
+
   // ── panic ─────────────────────────────────────────────────────────────────
   // Live, a stuck kill is the difference between a mistake and a disaster. One key puts
   // every held override back to neutral, whatever is physically still pressed.
@@ -53,6 +77,7 @@ export function buildPerform({ engine, toast, lcdShow, onFxChange }) {
   function releaseAll() {
     pads.forEach((p) => p.reset());
     engine.clearPerformance();
+    if (gate.isOn) setGate(0);
     lcdShow('perform', 'CLEAR');
   }
 
@@ -63,6 +88,7 @@ export function buildPerform({ engine, toast, lcdShow, onFxChange }) {
   unit.append(el('div', { class: 'stage-grid' },
     group('Isolator · hold them', killRow),
     group('Echo', el('div', { class: 'perform-echo' }, echoRow, el('div', { class: 'stage-row' }, syncBtn, panic))),
+    group('Gate', el('div', { class: 'perform-gate' }, gateDepth.el, el('div', { class: 'perform-echo' }, gateBtn, resyncBtn))),
     group('XY pad · drag it', xy.node),
   ));
 
@@ -78,6 +104,7 @@ export function buildPerform({ engine, toast, lcdShow, onFxChange }) {
     tick(dt, an) {
       engine.setTempo(an.bpm);
       xy.tick(dt);
+      gate.tick();
     },
     syncToKnobs: xy.syncToKnobs,
   };

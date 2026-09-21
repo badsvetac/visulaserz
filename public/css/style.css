@@ -410,6 +410,7 @@ button.card-add:active { transform: scale(0.92); }
 
 .perform-echo { display: flex; flex-direction: column; gap: 6px; }
 .perform-echo .stage-row { flex: none; }
+.perform-gate { display: flex; align-items: center; gap: 10px; }
 
 .xy-wrap { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .xy {
