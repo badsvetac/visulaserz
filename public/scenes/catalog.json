@@ -1,0 +1,955 @@
+{
+ "version": 1,
+ "groups": [
+  "Show",
+  "Journey",
+  "Vibe",
+  "Things",
+  "Lab"
+ ],
+ "scenes": [
+  {
+   "id": "nova",
+   "name": "Nova",
+   "group": "Show",
+   "blurb": "Radial spectrum bars around a waveform orb; a shockwave fires each beat",
+   "tags": [
+    "analyser",
+    "abstract",
+    "geometric"
+   ],
+   "energy": 0.65,
+   "file": "nova.js",
+   "thumb": "thumbs/nova.webp"
+  },
+  {
+   "id": "lasers",
+   "name": "Lasers",
+   "group": "Show",
+   "blurb": "Club laser rig in drifting haze; the beam pattern switches every 8 beats",
+   "tags": [
+    "night",
+    "intense",
+    "abstract"
+   ],
+   "energy": 0.92,
+   "file": "lasers.js",
+   "thumb": "thumbs/lasers.webp"
+  },
+  {
+   "id": "bars",
+   "name": "Bars",
+   "group": "Show",
+   "blurb": "Classic LED ladder spectrum with falling peak caps over a mirrored floor",
+   "tags": [
+    "analyser",
+    "retro",
+    "geometric"
+   ],
+   "energy": 0.5,
+   "file": "bars.js",
+   "thumb": "thumbs/bars.webp"
+  },
+  {
+   "id": "orb",
+   "name": "Orb",
+   "group": "Show",
+   "blurb": "Ray-marched sphere sprouting spectrum spikes, swelling with the bass",
+   "tags": [
+    "3d",
+    "abstract",
+    "organic"
+   ],
+   "energy": 0.6,
+   "file": "orb.js",
+   "thumb": "thumbs/orb.webp"
+  },
+  {
+   "id": "tunnel",
+   "name": "Tunnel",
+   "group": "Show",
+   "blurb": "Panelled tunnel lit by the spectrum; a light ring races down on each beat",
+   "tags": [
+    "3d",
+    "geometric",
+    "intense"
+   ],
+   "energy": 0.8,
+   "file": "tunnel.js",
+   "thumb": "thumbs/tunnel.webp"
+  },
+  {
+   "id": "kaleido",
+   "name": "Kaleido",
+   "group": "Show",
+   "blurb": "Six-fold fractal of neon lines that bends with bass and pulses on beats",
+   "tags": [
+    "abstract",
+    "geometric"
+   ],
+   "energy": 0.6,
+   "file": "kaleido.js",
+   "thumb": "thumbs/kaleido.webp"
+  },
+  {
+   "id": "scope",
+   "name": "Scope",
+   "group": "Show",
+   "blurb": "Oscilloscope trace crossed by a circular waveform ring that flares on beats",
+   "tags": [
+    "analyser",
+    "retro",
+    "abstract"
+   ],
+   "energy": 0.45,
+   "file": "scope.js",
+   "thumb": "thumbs/scope.webp"
+  },
+  {
+   "id": "xy",
+   "name": "XY",
+   "group": "Show",
+   "blurb": "Vectorscope: left against right channel traced on a round green-screen graticule",
+   "tags": [
+    "analyser",
+    "retro",
+    "geometric"
+   ],
+   "energy": 0.4,
+   "file": "xy.js",
+   "thumb": "thumbs/xy.webp"
+  },
+  {
+   "id": "title",
+   "name": "Title",
+   "group": "Show",
+   "blurb": "The track title itself, rippled by the waveform and colour-split by the bass",
+   "tags": [
+    "text",
+    "abstract"
+   ],
+   "energy": 0.5,
+   "file": "title.js",
+   "thumb": "thumbs/title.webp"
+  },
+  {
+   "id": "pulsar",
+   "name": "Pulsar",
+   "group": "Show",
+   "blurb": "Stacked ridgelines; each drum hit rises in front and rolls into the distance",
+   "tags": [
+    "analyser",
+    "science",
+    "retro",
+    "geometric"
+   ],
+   "energy": 0.4,
+   "file": "pulsar.js",
+   "thumb": "thumbs/pulsar.webp"
+  },
+  {
+   "id": "lattice",
+   "name": "Lattice",
+   "group": "Show",
+   "blurb": "Corridor of glowing cubes breathing like a 3D equaliser; a light wall on beats",
+   "tags": [
+    "3d",
+    "geometric",
+    "abstract"
+   ],
+   "energy": 0.65,
+   "file": "lattice.js",
+   "thumb": "thumbs/lattice.webp"
+  },
+  {
+   "id": "fireworks",
+   "name": "Fireworks",
+   "group": "Show",
+   "blurb": "Harbour fireworks: a shell bursts on every kick and the water mirrors the glow",
+   "tags": [
+    "fire",
+    "night",
+    "water",
+    "city"
+   ],
+   "energy": 0.75,
+   "file": "fireworks.js",
+   "thumb": "thumbs/fireworks.webp"
+  },
+  {
+   "id": "voyage",
+   "name": "Voyage",
+   "group": "Journey",
+   "blurb": "Cockpit view of deep space; stars streak with the bass, hyperspace every 16 beats",
+   "tags": [
+    "space",
+    "vehicle",
+    "3d"
+   ],
+   "energy": 0.6,
+   "file": "voyage.js",
+   "thumb": "thumbs/voyage.webp"
+  },
+  {
+   "id": "flyby",
+   "name": "Flyby",
+   "group": "Journey",
+   "blurb": "Threading close between sunlit planets, bass lighting their atmospheric halos",
+   "tags": [
+    "space",
+    "3d"
+   ],
+   "energy": 0.5,
+   "file": "flyby.js",
+   "thumb": "thumbs/flyby.webp"
+  },
+  {
+   "id": "highway",
+   "name": "Highway",
+   "group": "Journey",
+   "blurb": "Night motorway from the driver's seat; traffic taps its brakes on the beat",
+   "tags": [
+    "vehicle",
+    "night",
+    "city",
+    "3d"
+   ],
+   "energy": 0.5,
+   "file": "highway.js",
+   "thumb": "thumbs/highway.webp"
+  },
+  {
+   "id": "forest",
+   "name": "Forest",
+   "group": "Journey",
+   "blurb": "Headlights on a pine road under the Milky Way, fireflies and ground fog",
+   "tags": [
+    "vehicle",
+    "nature",
+    "night",
+    "calm"
+   ],
+   "energy": 0.25,
+   "file": "forest.js",
+   "thumb": "thumbs/forest.webp"
+  },
+  {
+   "id": "outrun",
+   "name": "Outrun",
+   "group": "Journey",
+   "blurb": "Neon grid road to a synth sun; hills rise from the spectrum's history",
+   "tags": [
+    "retro",
+    "vehicle",
+    "geometric",
+    "3d"
+   ],
+   "energy": 0.7,
+   "file": "outrun.js",
+   "thumb": "thumbs/outrun.webp"
+  },
+  {
+   "id": "train",
+   "name": "Train",
+   "group": "Journey",
+   "blurb": "Night train window: beat lamps sweep past, the wires carry the waveform",
+   "tags": [
+    "vehicle",
+    "night",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "train.js",
+   "thumb": "thumbs/train.webp"
+  },
+  {
+   "id": "cloudsea",
+   "name": "Cloudsea",
+   "group": "Journey",
+   "blurb": "Sunset flight over a cloud deck that billows with bass; birds flap in time",
+   "tags": [
+    "weather",
+    "nature",
+    "3d",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "cloudsea.js",
+   "thumb": "thumbs/cloudsea.webp"
+  },
+  {
+   "id": "singularity",
+   "name": "Singularity",
+   "group": "Journey",
+   "blurb": "Black hole bending starlight; disc radii glow per band, beats ring outward",
+   "tags": [
+    "space",
+    "science",
+    "3d"
+   ],
+   "energy": 0.6,
+   "file": "singularity.js",
+   "thumb": "thumbs/singularity.webp"
+  },
+  {
+   "id": "galaxy",
+   "name": "Galaxy",
+   "group": "Journey",
+   "blurb": "Spiral galaxy where bass throbs in the core and hi-hats sparkle on the rim",
+   "tags": [
+    "space",
+    "science",
+    "organic"
+   ],
+   "energy": 0.45,
+   "file": "galaxy.js",
+   "thumb": "thumbs/galaxy.webp"
+  },
+  {
+   "id": "orrery",
+   "name": "Orrery",
+   "group": "Journey",
+   "blurb": "Clockwork solar system: each planet is a band, the sun is the bass",
+   "tags": [
+    "space",
+    "science",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "orrery.js",
+   "thumb": "thumbs/orrery.webp"
+  },
+  {
+   "id": "aurora",
+   "name": "Aurora",
+   "group": "Vibe",
+   "blurb": "Northern lights over a frozen lake; curtains lit by the spectrum, beat ripples",
+   "tags": [
+    "nature",
+    "night",
+    "calm",
+    "organic"
+   ],
+   "energy": 0.3,
+   "file": "aurora.js",
+   "thumb": "thumbs/aurora.webp"
+  },
+  {
+   "id": "rain",
+   "name": "Rain",
+   "group": "Vibe",
+   "blurb": "Rainy city night through a window; bass thickens the rain, lightning strikes",
+   "tags": [
+    "city",
+    "weather",
+    "night",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "rain.js",
+   "thumb": "thumbs/rain.webp"
+  },
+  {
+   "id": "tide",
+   "name": "Tide",
+   "group": "Vibe",
+   "blurb": "Moonlit open sea; bass lifts the swell and plankton glows on every beat",
+   "tags": [
+    "water",
+    "nature",
+    "night",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "tide.js",
+   "thumb": "thumbs/tide.webp"
+  },
+  {
+   "id": "ember",
+   "name": "Ember",
+   "group": "Vibe",
+   "blurb": "Campfire by the woods; five flame tongues leap with the spectrum bands",
+   "tags": [
+    "fire",
+    "nature",
+    "night",
+    "organic"
+   ],
+   "energy": 0.45,
+   "file": "ember.js",
+   "thumb": "thumbs/ember.webp"
+  },
+  {
+   "id": "skyline",
+   "name": "Skyline",
+   "group": "Vibe",
+   "blurb": "Night city whose lit tower floors climb with the spectrum above a river",
+   "tags": [
+    "city",
+    "night",
+    "analyser",
+    "water"
+   ],
+   "energy": 0.5,
+   "file": "skyline.js",
+   "thumb": "thumbs/skyline.webp"
+  },
+  {
+   "id": "storm",
+   "name": "Storm",
+   "group": "Vibe",
+   "blurb": "Thunderstorm over open country; branching bolts strike every second beat",
+   "tags": [
+    "weather",
+    "nature",
+    "night",
+    "intense"
+   ],
+   "energy": 0.75,
+   "file": "storm.js",
+   "thumb": "thumbs/storm.webp"
+  },
+  {
+   "id": "sakura",
+   "name": "Sakura",
+   "group": "Vibe",
+   "blurb": "Shrine lanterns glow per spectrum band while petals gust on every beat",
+   "tags": [
+    "nature",
+    "night",
+    "calm",
+    "organic"
+   ],
+   "energy": 0.3,
+   "file": "sakura.js",
+   "thumb": "thumbs/sakura.webp"
+  },
+  {
+   "id": "cabin",
+   "name": "Cabin",
+   "group": "Vibe",
+   "blurb": "Snowed-in cabin at night; eave bulbs show the spectrum, fire glows with bass",
+   "tags": [
+    "nature",
+    "weather",
+    "night",
+    "calm"
+   ],
+   "energy": 0.15,
+   "file": "cabin.js",
+   "thumb": "thumbs/cabin.webp"
+  },
+  {
+   "id": "abyss",
+   "name": "Abyss",
+   "group": "Vibe",
+   "blurb": "Deep-sea jellyfish that pulse on every kick, each glowing with its own band",
+   "tags": [
+    "water",
+    "nature",
+    "organic",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "abyss.js",
+   "thumb": "thumbs/abyss.webp"
+  },
+  {
+   "id": "eclipse",
+   "name": "Eclipse",
+   "group": "Vibe",
+   "blurb": "Total eclipse whose corona is a ring spectrum; diamond ring flashes on beats",
+   "tags": [
+    "space",
+    "analyser",
+    "science"
+   ],
+   "energy": 0.5,
+   "file": "eclipse.js",
+   "thumb": "thumbs/eclipse.webp"
+  },
+  {
+   "id": "nebula",
+   "name": "Nebula",
+   "group": "Vibe",
+   "blurb": "Slow folding gas clouds that churn with the bass under treble-lit stars",
+   "tags": [
+    "space",
+    "abstract",
+    "organic",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "nebula.js",
+   "thumb": "thumbs/nebula.webp"
+  },
+  {
+   "id": "bosphorus",
+   "name": "Bosphorus",
+   "group": "Vibe",
+   "blurb": "Istanbul bridge at night; its hanger lights are the spectrum, mirrored in water",
+   "tags": [
+    "turkish",
+    "city",
+    "night",
+    "water"
+   ],
+   "energy": 0.4,
+   "file": "bosphorus.js",
+   "thumb": "thumbs/bosphorus.webp"
+  },
+  {
+   "id": "cappadocia",
+   "name": "Cappadocia",
+   "group": "Vibe",
+   "blurb": "Nine dawn balloons over fairy chimneys; each burner flares with its own band",
+   "tags": [
+    "turkish",
+    "nature",
+    "calm"
+   ],
+   "energy": 0.2,
+   "file": "cappadocia.js",
+   "thumb": "thumbs/cappadocia.webp"
+  },
+  {
+   "id": "koi",
+   "name": "Koi",
+   "group": "Vibe",
+   "blurb": "Koi circling under lily pads; every beat drops a ripple ring on the pond",
+   "tags": [
+    "water",
+    "nature",
+    "organic",
+    "calm"
+   ],
+   "energy": 0.1,
+   "file": "koi.js",
+   "thumb": "thumbs/koi.webp"
+  },
+  {
+   "id": "sema",
+   "name": "Sema",
+   "group": "Vibe",
+   "blurb": "Five whirling dervishes; skirts flare with the level, hall lamps show the bands",
+   "tags": [
+    "turkish",
+    "calm",
+    "organic"
+   ],
+   "energy": 0.35,
+   "file": "sema.js",
+   "thumb": "thumbs/sema.webp"
+  },
+  {
+   "id": "papercut",
+   "name": "Papercut",
+   "group": "Vibe",
+   "blurb": "Seven sheets of cut paper; every ridge rises and falls with its own band",
+   "tags": [
+    "nature",
+    "artwork",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "papercut.js",
+   "thumb": "thumbs/papercut.webp"
+  },
+  {
+   "id": "garden",
+   "name": "Garden",
+   "group": "Vibe",
+   "blurb": "Raked zen gravel and five stones; every beat drops a maple leaf",
+   "tags": [
+    "nature",
+    "calm",
+    "organic"
+   ],
+   "energy": 0.1,
+   "file": "garden.js",
+   "thumb": "thumbs/garden.webp"
+  },
+  {
+   "id": "meadow",
+   "name": "Meadow",
+   "group": "Vibe",
+   "blurb": "Windy field in daylight; the bass is the gust that bends the grass",
+   "tags": [
+    "nature",
+    "weather",
+    "calm"
+   ],
+   "energy": 0.25,
+   "file": "meadow.js",
+   "thumb": "thumbs/meadow.webp"
+  },
+  {
+   "id": "vinyl",
+   "name": "Vinyl",
+   "group": "Things",
+   "blurb": "Spinning record whose grooves glow with the spectrum; sheen jumps on beats",
+   "tags": [
+    "retro",
+    "artwork",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "vinyl.js",
+   "thumb": "thumbs/vinyl.webp"
+  },
+  {
+   "id": "cassette",
+   "name": "Cassette",
+   "group": "Things",
+   "blurb": "Clear-shell tape winding reel to reel, title on the label, hubs glow with bass",
+   "tags": [
+    "retro",
+    "text",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "cassette.js",
+   "thumb": "thumbs/cassette.webp"
+  },
+  {
+   "id": "lava",
+   "name": "Lava",
+   "group": "Things",
+   "blurb": "Three lava lamps in a dark room; wax blobs swell per band and rise faster loud",
+   "tags": [
+    "retro",
+    "organic",
+    "calm"
+   ],
+   "energy": 0.2,
+   "file": "lava.js",
+   "thumb": "thumbs/lava.webp"
+  },
+  {
+   "id": "broadcast",
+   "name": "Broadcast",
+   "group": "Things",
+   "blurb": "Worn VHS on a tube TV: cover or colour bars, beats yank the picture sideways",
+   "tags": [
+    "retro",
+    "artwork",
+    "text",
+    "intense"
+   ],
+   "energy": 0.7,
+   "file": "broadcast.js",
+   "thumb": "thumbs/broadcast.webp"
+  },
+  {
+   "id": "neon",
+   "name": "Neon",
+   "group": "Things",
+   "blurb": "Track title as a neon sign on brick over wet pavement, flickering with treble",
+   "tags": [
+    "city",
+    "night",
+    "text",
+    "retro"
+   ],
+   "energy": 0.55,
+   "file": "neon.js",
+   "thumb": "thumbs/neon.webp"
+  },
+  {
+   "id": "arcade",
+   "name": "Arcade",
+   "group": "Things",
+   "blurb": "Pixel invaders march on the beat, columns lit per band, cannon fires in time",
+   "tags": [
+    "retro",
+    "space",
+    "geometric"
+   ],
+   "energy": 0.65,
+   "file": "arcade.js",
+   "thumb": "thumbs/arcade.webp"
+  },
+  {
+   "id": "globe",
+   "name": "Globe",
+   "group": "Things",
+   "blurb": "Holographic dot-matrix planet; cities glitter per band, beats ping the map",
+   "tags": [
+    "space",
+    "3d",
+    "science"
+   ],
+   "energy": 0.5,
+   "file": "globe.js",
+   "thumb": "thumbs/globe.webp"
+  },
+  {
+   "id": "pool",
+   "name": "Pool",
+   "group": "Things",
+   "blurb": "Sunlit pool floor with rainbow caustics; every beat drops a pebble ripple",
+   "tags": [
+    "water",
+    "calm",
+    "organic"
+   ],
+   "energy": 0.3,
+   "file": "pool.js",
+   "thumb": "thumbs/pool.webp"
+  },
+  {
+   "id": "plasma",
+   "name": "Plasma",
+   "group": "Things",
+   "blurb": "Plasma globe whose nine filaments thicken white-hot with their bands",
+   "tags": [
+    "science",
+    "night",
+    "organic"
+   ],
+   "energy": 0.65,
+   "file": "plasma.js",
+   "thumb": "thumbs/plasma.webp"
+  },
+  {
+   "id": "mercury",
+   "name": "Mercury",
+   "group": "Things",
+   "blurb": "Six blobs of chrome melting together; a beat throws them apart",
+   "tags": [
+    "abstract",
+    "organic",
+    "3d"
+   ],
+   "energy": 0.55,
+   "file": "mercury.js",
+   "thumb": "thumbs/mercury.webp"
+  },
+  {
+   "id": "kilim",
+   "name": "Kilim",
+   "group": "Things",
+   "blurb": "A rug woven as the track plays; the shuttle crosses on every beat",
+   "tags": [
+    "turkish",
+    "artwork",
+    "geometric"
+   ],
+   "energy": 0.4,
+   "file": "kilim.js",
+   "thumb": "thumbs/kilim.webp"
+  },
+  {
+   "id": "nazar",
+   "name": "Nazar",
+   "group": "Things",
+   "blurb": "Evil-eye beads in a window, one band each, swaying together on a beat",
+   "tags": [
+    "turkish",
+    "night",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "nazar.js",
+   "thumb": "thumbs/nazar.webp"
+  },
+  {
+   "id": "chladni",
+   "name": "Chladni",
+   "group": "Lab",
+   "blurb": "Sand on a vibrating plate; beats kick the grains into new nodal figures",
+   "tags": [
+    "science",
+    "geometric",
+    "abstract"
+   ],
+   "energy": 0.45,
+   "file": "chladni.js",
+   "thumb": "thumbs/chladni.webp"
+  },
+  {
+   "id": "mosaic",
+   "name": "Mosaic",
+   "group": "Lab",
+   "blurb": "Stained-glass rose window; each pane glows with its band, beats send light out",
+   "tags": [
+    "geometric",
+    "artwork",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "mosaic.js",
+   "thumb": "thumbs/mosaic.webp"
+  },
+  {
+   "id": "julia",
+   "name": "Julia",
+   "group": "Lab",
+   "blurb": "Julia fractal steered by the mids, shattering to dust and healing again",
+   "tags": [
+    "abstract",
+    "science",
+    "organic"
+   ],
+   "energy": 0.6,
+   "file": "julia.js",
+   "thumb": "thumbs/julia.webp"
+  },
+  {
+   "id": "harmonograph",
+   "name": "Harmonograph",
+   "group": "Lab",
+   "blurb": "Pendulum pen tracing fading interval curves; louder music draws faster",
+   "tags": [
+    "geometric",
+    "science",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "harmonograph.js",
+   "thumb": "thumbs/harmonograph.webp"
+  },
+  {
+   "id": "helix",
+   "name": "Helix",
+   "group": "Lab",
+   "blurb": "Turning DNA strand whose base pairs are the spectrum; beats send light along it",
+   "tags": [
+    "science",
+    "organic",
+    "analyser"
+   ],
+   "energy": 0.45,
+   "file": "helix.js",
+   "thumb": "thumbs/helix.webp"
+  },
+  {
+   "id": "cipher",
+   "name": "Cipher",
+   "group": "Lab",
+   "blurb": "Digital rain with one band per column; the song title condenses out of it",
+   "tags": [
+    "retro",
+    "text",
+    "night"
+   ],
+   "energy": 0.6,
+   "file": "cipher.js",
+   "thumb": "thumbs/cipher.webp"
+  },
+  {
+   "id": "ebru",
+   "name": "Ebru",
+   "group": "Lab",
+   "blurb": "Turkish paper marbling; every beat drops a paint stone on the combed bath",
+   "tags": [
+    "turkish",
+    "artwork",
+    "organic",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "ebru.js",
+   "thumb": "thumbs/ebru.webp"
+  },
+  {
+   "id": "radar",
+   "name": "Radar",
+   "group": "Lab",
+   "blurb": "Phosphor scope sweep paints a polar spectrogram; beats ping sonar rings",
+   "tags": [
+    "retro",
+    "analyser",
+    "science",
+    "geometric"
+   ],
+   "energy": 0.5,
+   "file": "radar.js",
+   "thumb": "thumbs/radar.webp"
+  },
+  {
+   "id": "keys",
+   "name": "Keys",
+   "group": "Lab",
+   "blurb": "Player piano with keys lit by the spectrum and a piano roll scrolling up",
+   "tags": [
+    "analyser",
+    "retro",
+    "geometric"
+   ],
+   "energy": 0.5,
+   "file": "keys.js",
+   "thumb": "thumbs/keys.webp"
+  },
+  {
+   "id": "mandala",
+   "name": "Mandala",
+   "group": "Lab",
+   "blurb": "Seven rings of petals that open with their bands and breathe on the beat",
+   "tags": [
+    "geometric",
+    "analyser",
+    "calm"
+   ],
+   "energy": 0.4,
+   "file": "mandala.js",
+   "thumb": "thumbs/mandala.webp"
+  },
+  {
+   "id": "strings",
+   "name": "Strings",
+   "group": "Lab",
+   "blurb": "Twenty-four strings blurred into standing waves, bass at the left",
+   "tags": [
+    "analyser",
+    "science",
+    "abstract"
+   ],
+   "energy": 0.5,
+   "file": "strings.js",
+   "thumb": "thumbs/strings.webp"
+  },
+  {
+   "id": "tesseract",
+   "name": "Tesseract",
+   "group": "Lab",
+   "blurb": "A four-dimensional cube turning inside out; corners spark on the beat",
+   "tags": [
+    "geometric",
+    "3d",
+    "science"
+   ],
+   "energy": 0.55,
+   "file": "tesseract.js",
+   "thumb": "thumbs/tesseract.webp"
+  },
+  {
+   "id": "topo",
+   "name": "Topo",
+   "group": "Lab",
+   "blurb": "Contour map of ground that will not keep still; beats ripple through it",
+   "tags": [
+    "science",
+    "geometric",
+    "abstract"
+   ],
+   "energy": 0.45,
+   "file": "topo.js",
+   "thumb": "thumbs/topo.webp"
+  },
+  {
+   "id": "circuit",
+   "name": "Circuit",
+   "group": "Lab",
+   "blurb": "Truchet-tile circuit board; light pulses run the traces with the song",
+   "tags": [
+    "geometric",
+    "retro",
+    "abstract"
+   ],
+   "energy": 0.6,
+   "file": "circuit.js",
+   "thumb": "thumbs/circuit.webp"
+  }
+ ]
+}

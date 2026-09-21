@@ -1,0 +1,10 @@
+# The hosted edition is public/ + api/ + lib/. Everything below belongs to the local edition.
+# cache/ holds downloaded audio: it must never be uploaded.
+cache
+.venv
+node_modules
+scripts
+server.js
+.claude
+README.md
+*.log

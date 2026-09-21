@@ -1,0 +1,18 @@
+{
+  "name": "visulaserz",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Audio-reactive laser/visual show with a slowed+reverb FX rack. Plays local files and YouTube audio.",
+  "scripts": {
+    "start": "node server.js",
+    "web": "node scripts/web-preview.js",
+    "catalog": "node scripts/build-catalog.js",
+    "thumbs": "node scripts/make-thumbs.js",
+    "setup": "node scripts/setup.js",
+    "update-ytdlp": "node scripts/setup.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

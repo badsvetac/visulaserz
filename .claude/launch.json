@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "visulaserz",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "server.js"
+      ],
+      "port": 4777
+    },
+    {
+      "name": "visulaserz-web",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/web-preview.js"
+      ],
+      "port": 4778
+    },
+    {
+      "name": "visulaserz-thumbs",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/make-thumbs.js"
+      ],
+      "port": 4779
+    }
+  ]
+}
