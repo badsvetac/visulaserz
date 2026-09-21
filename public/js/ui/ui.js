@@ -96,11 +96,16 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   }
 
   // ── accent colour follows the palette ─────────────────────────────────────
-  function applyAccent() {
-    const hex = renderer.palette.accent;
+  // Split in two because a palette glide has to repaint the desk every frame, and the swatch
+  // pass walks the DOM: only the colour part is cheap enough to run sixty times a second.
+  function applyAccentColour() {
+    const hex = renderer.shownPalette.accent;
     document.documentElement.style.setProperty('--beam', hex);
     document.documentElement.style.setProperty('--beam-rgb', hexToRgb(hex));
     renderer.lyrics.setAccent(hexToRgb(hex).split(',').map((v) => Number(v) / 255));
+  }
+  function applyAccent() {
+    applyAccentColour();
     document.querySelectorAll('.swatch').forEach((b) => b.classList.toggle('is-active', b.dataset.palette === renderer.palette.id));
   }
 
@@ -289,18 +294,21 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     b.addEventListener('click', () => selectPalette(p.id));
     swatches.append(b);
   }
-  function selectPalette(id) {
-    renderer.setPalette(id);
+  // An automatic change gets a long dissolve because nobody asked for it and it should not
+  // pull the eye; a click gets a short one, so the swatch still feels like a button.
+  function selectPalette(id, { glide } = {}) {
+    renderer.setPalette(id, { glide: renderer.look.softPalette ? (glide ?? 0.9) : 0 });
     applyAccent();
     lcdShow('palette', renderer.palette.name);
     saveSettings();
   }
-  function nextPalette(dir) {
+  function nextPalette(dir, opts) {
     const i = PALETTES.findIndex((p) => p.id === renderer.palette.id);
-    selectPalette(PALETTES[(i + dir + PALETTES.length) % PALETTES.length].id);
+    selectPalette(PALETTES[(i + dir + PALETTES.length) % PALETTES.length].id, opts);
   }
   const hueDrift = toggle('Drift', () => renderer.look.hueDrift, (v) => { renderer.look.hueDrift = v; }, { title: 'Slowly rotate the palette over time' });
   const cycleBtn = toggle('Cycle', () => !!renderer.look.cycle, (v) => { renderer.look.cycle = v; }, { title: 'Move to the next palette every 16 beats' });
+  const softBtn = toggle('Soft', () => renderer.look.softPalette, (v) => { renderer.look.softPalette = v; }, { title: 'Dissolve between palettes instead of cutting to the next one' });
   const lookRow = el('div', { class: 'keys', role: 'group', 'aria-label': 'Looks' });
   for (const lp of LOOK_PRESETS) {
     lookRow.append(el('button', { class: 'key', type: 'button', onclick: () => {
@@ -402,7 +410,7 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     sceneBar,
     lookRow,
     el('div', { class: 'knob-row' },
-      group('Palette', swatches, hueDrift, cycleBtn),
+      group('Palette', swatches, hueDrift, cycleBtn, softBtn),
       group('Motion',
         lookKnob('react', 'React', 0.4, 2.2, 1, { get: () => analysis.sensitivity, set: (v) => { analysis.sensitivity = v; }, fmt: (v) => `${v.toFixed(2)}×` }),
         lookKnob('motion', 'Motion', 0.3, 2, 1, { get: () => analysis.motion, set: (v) => { analysis.motion = v; }, fmt: (v) => `${v.toFixed(2)}×` }),
@@ -888,9 +896,11 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
         if (an.beatCount - cycleBeat >= 16 || cycleClock > 30) {
           cycleBeat = an.beatCount;
           cycleClock = 0;
-          nextPalette(1);
+          nextPalette(1, { glide: 3.2 });
         }
       }
+      // While a palette dissolves, the desk has to travel with the rig or the two disagree.
+      if (renderer.palProgress < 1) applyAccentColour();
 
       lcdHold -= dt;
       if (lcdHold <= 0) {

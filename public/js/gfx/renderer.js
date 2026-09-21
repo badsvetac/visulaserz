@@ -2,7 +2,7 @@ import {
   FULLSCREEN_VERT, SCENE_HEADER, PARTICLE_VERT, PARTICLE_FRAG, FEEDBACK_FRAG,
   BLOOM_PREFILTER_FRAG, BLOOM_DOWN_FRAG, BLOOM_UP_FRAG, COMPOSITE_FRAG,
 } from './glsl.js';
-import { PALETTES } from './palettes.js';
+import { PALETTES, blendPalettes } from './palettes.js';
 import { LyricLayer } from './lyric-layer.js';
 import { SPECTRUM_BINS, HIST_W, HIST_H } from '../audio/analysis.js';
 import { clamp } from '../util.js';
@@ -105,10 +105,14 @@ export class Renderer {
     this.look = {
       bloom: 0.9, aberration: 0.6, grain: 0.35, symmetry: 0, particles: true,
       quality: 'high', reduceFlashing: false, hueDrift: true, scanlines: false, glitch: false,
+      softPalette: true,
     };
     this.trail = { trails: 0, zoom: 1, spin: 0 };
     this.trailOverrides = {};
-    this.palette = PALETTES[0];
+    this.palette = PALETTES[0];   // where the palette is going
+    this.palFrom = PALETTES[0];   // where it came from; equal to palette when nothing is gliding
+    this.palProgress = 1;         // 0 → 1 across palFrom to palette
+    this.palGlide = 0;            // seconds the current glide takes, 0 when it was instant
     this.hue = 0;
     this.time = 0;
     this.fade = 0;
@@ -356,8 +360,26 @@ export class Renderer {
     (this.trailOverrides[this.scene.id] ||= {})[key] = value;
   }
 
-  setPalette(id) {
-    this.palette = PALETTES.find((p) => p.id === id) || PALETTES[0];
+  // glide is seconds; 0 changes palette on the spot. The shader holds both palettes and
+  // crossfades them, so the picture never passes through a colour neither one contains.
+  setPalette(id, { glide = 0 } = {}) {
+    const next = PALETTES.find((p) => p.id === id) || PALETTES[0];
+    if (next === this.palette && this.palProgress >= 1) return;
+    if (glide > 0) {
+      this.palFrom = this.palProgress < 1 ? blendPalettes(this.palFrom, this.palette, this.palProgress) : this.palette;
+      this.palProgress = 0;
+      this.palGlide = glide;
+    } else {
+      this.palFrom = next;
+      this.palProgress = 1;
+      this.palGlide = 0;
+    }
+    this.palette = next;
+  }
+
+  // What the eye is seeing right now, for the UI accent colour.
+  get shownPalette() {
+    return this.palProgress >= 1 ? this.palette : blendPalettes(this.palFrom, this.palette, this.palProgress);
   }
 
   setQuality(q) {
@@ -384,6 +406,7 @@ export class Renderer {
     this.fps += (1 / Math.max(dt, 1e-3) - this.fps) * 0.05;
     this.fade = Math.min(1, this.fade + dt / 0.6);
     if (this.look.hueDrift) this.hue = (this.hue + dt * 0.008) % 1;
+    if (this.palProgress < 1) this.palProgress = Math.min(1, this.palProgress + dt / this.palGlide);
 
     let scene = this.scene;
     let program = this.#sceneProgram(scene);
@@ -412,13 +435,18 @@ export class Renderer {
       this.#texture(3, this.textTex);
       this.#texture(4, this.backdropTex);
 
-      const pal = this.palette;
+      const pal = this.palFrom;
+      const pal2 = this.palette;
+      // Smoothstep so a cycled change eases in and out instead of sliding at a constant rate,
+      // which is what makes it read as a dissolve rather than a fader being pushed.
+      const k = this.palProgress * this.palProgress * (3 - 2 * this.palProgress);
       const shared = {
         uRes: res, uTime: this.time, uTravel: an.travel, uCruise: an.cruise, uCruiseRate: an.cruiseRate,
         uBass: an.bass, uMid: an.mid, uHigh: an.high, uLevel: an.level, uEnergy: an.energy,
         uBeat: an.beat, uBeatAge: an.beatAge, uBeatCount: an.beatCount, uBalance: an.balance,
         uPunch: punch, uHue: this.hue, uHistFrac: an.historyFrac,
         uPalA: pal.a, uPalB: pal.b, uPalC: pal.c, uPalD: pal.d,
+        uPalA2: pal2.a, uPalB2: pal2.b, uPalC2: pal2.c, uPalD2: pal2.d, uPalMix: k,
         uHasArt: this.hasArt ? 1 : 0, uArtAspect: this.artAspect, uXYGain: an.xyGain,
         uHasBackdrop: this.hasBackdrop ? 1 : 0, uBackdropAspect: this.backdropAspect,
         ...this.extra,

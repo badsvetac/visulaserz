@@ -30,6 +30,8 @@ uniform float uPunch;      // how hard beats may hit the picture (lowered by "re
 uniform float uHue;
 uniform float uHistFrac;
 uniform vec3  uPalA, uPalB, uPalC, uPalD;
+uniform vec3  uPalA2, uPalB2, uPalC2, uPalD2;
+uniform float uPalMix;     // 0 = the first set, 1 = the second; a palette change glides across
 uniform sampler2D uAudio;  // 512x6: spectrum / waveform / peak caps / slow spectrum / left wave / right wave
 uniform sampler2D uHist;   // 128x128 scrolling spectrogram, row 0 = now
 uniform sampler2D uArt;    // album art, valid when uHasArt > 0.5
@@ -43,7 +45,13 @@ uniform float uProgress;   // 0..1 through the track
 #define TAU 6.28318530718
 #define ROW(r) ((r + 0.5) / 6.0)
 
-vec3 pal(float t) { return clamp(uPalA + uPalB * cos(TAU * (uPalC * t + uPalD + uHue)), 0.0, 1.0); }
+vec3 palOf(vec3 a, vec3 b, vec3 c, vec3 d, float t) { return clamp(a + b * cos(TAU * (c * t + d + uHue)), 0.0, 1.0); }
+// Two palettes, crossfaded by their OUTPUT. Interpolating a, b, c, d instead would be one
+// cosine cheaper but wrong: with different frequencies (Miami is c = [2,1,0], Laser [1,1,1])
+// the halfway parameters describe a palette that is nobody's, and it goes muddy on the way.
+vec3 pal(float t) {
+  return mix(palOf(uPalA, uPalB, uPalC, uPalD, t), palOf(uPalA2, uPalB2, uPalC2, uPalD2, t), uPalMix);
+}
 float spec(float x)  { return texture(uAudio, vec2(clamp(x, 0.002, 0.998), ROW(0.0))).r; }
 float wave(float x)  { return texture(uAudio, vec2(clamp(x, 0.002, 0.998), ROW(1.0))).r * 2.0 - 1.0; }
 float peak(float x)  { return texture(uAudio, vec2(clamp(x, 0.002, 0.998), ROW(2.0))).r; }
@@ -80,12 +88,17 @@ uniform vec2 uRes;
 uniform float uTime, uTravel, uBass, uHigh, uLevel, uBeat, uHue;
 uniform int uMode;   // 1 starfield, 2 embers, 3 dust, 4 vectorscope trace
 uniform vec3 uPalA, uPalB, uPalC, uPalD;
+uniform vec3 uPalA2, uPalB2, uPalC2, uPalD2;
+uniform float uPalMix;
 uniform sampler2D uAudio;
 uniform float uXYGain;
 out vec4 vColor;
 #define TAU 6.28318530718
 float h(float n) { return fract(sin(n * 127.1 + 311.7) * 43758.5453); }
-vec3 pal(float t) { return clamp(uPalA + uPalB * cos(TAU * (uPalC * t + uPalD + uHue)), 0.0, 1.0); }
+vec3 palOf(vec3 a, vec3 b, vec3 c, vec3 d, float t) { return clamp(a + b * cos(TAU * (c * t + d + uHue)), 0.0, 1.0); }
+vec3 pal(float t) {
+  return mix(palOf(uPalA, uPalB, uPalC, uPalD, t), palOf(uPalA2, uPalB2, uPalC2, uPalD2, t), uPalMix);
+}
 void main() {
   float id = float(gl_VertexID);
   float r1 = h(id), r2 = h(id * 1.7 + 3.1), r3 = h(id * 2.3 + 7.7), r4 = h(id * 3.1 + 1.9);
