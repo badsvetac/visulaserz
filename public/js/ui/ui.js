@@ -8,6 +8,7 @@ import { looksLikeYouTube } from './crate.js';
 import { buildStage } from './stage.js';
 import { buildPerform } from './perform.js';
 import { buildVibes } from './vibes.js';
+import { buildRoom } from './room.js';
 import { buildMarket, isSceneFile } from './market.js';
 import { buildMeters } from './meters.js';
 import { attachArtwork } from './artwork.js';
@@ -70,7 +71,7 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let market = null;
   const saveSettings = debounce(() => store.set('settings', {
-    fx: engine.fx, look: renderer.look, trailOverrides: renderer.trailOverrides,
+    fx: engine.fx, room: engine.roomMix, look: renderer.look, trailOverrides: renderer.trailOverrides,
     scene: market ? market.settledScene : renderer.sceneId, palette: renderer.palette.id, volume: engine.volume,
     sensitivity: analysis.sensitivity, motion: analysis.motion, auto: director.enabled,
   }), 300);
@@ -216,12 +217,14 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     ambienceSource.classList.toggle('is-active', !!f);
   });
 
+  const room = buildRoom({ engine, lcdShow, saveSettings });
+
   const knobRow = el('div', { class: 'knob-row' });
   for (const g of FX_GROUPS) {
     const ids = Object.keys(FX_PARAMS).filter((id) => FX_PARAMS[id].group === g);
     const items = ids.map(fxKnob);
     if (g === 'Varispeed') items.push(pitchLock);
-    if (g === 'Ambience') items.push(ambienceSource);
+    if (g === 'Ambience') items.push(ambienceSource, room.node);
     knobRow.append(group(g, ...items));
   }
   soundUnit.append(presetRow, knobRow);
@@ -818,6 +821,9 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
 
   // ── restore settings ──────────────────────────────────────────────────────
   if (settings.fx) { engine.setAll(settings.fx); activePreset = null; setActive(presetRow, () => false); refreshFxKnobs(); }
+  // The audio context does not exist yet, so this only records the levels; they reach the
+  // Ambience the moment it is built, on the first gesture.
+  if (settings.room) { Object.assign(engine.roomMix, settings.room); room.refresh(); }
   if (settings.look) Object.assign(renderer.look, settings.look);
   if (settings.trailOverrides) renderer.trailOverrides = settings.trailOverrides;
   if (reduceMotion && settings.look?.reduceFlashing === undefined) renderer.look.reduceFlashing = true;

@@ -42,6 +42,7 @@ export class AudioEngine extends EventTarget {
     this.liveMonitor = false; // hearing the live input back would feed straight into the mic
     this.ambience = null; // scene sound (rain…), created with the context
     this.ambienceKind = null;
+    this.roomMix = {}; // the user's own Room layers, kept here because the context is lazy
     this.tempo = 0; // BPM the analysis is currently sure about, for anything tempo-synced
     this.echoSync = 0; // index into ECHO_DIVISIONS; 0 leaves the Time knob alone
     this.syncTempo = 0; // the tempo the echo is actually locked to (changes only after HOLD)
@@ -113,6 +114,7 @@ export class AudioEngine extends EventTarget {
     this.ambience.setLevel(this.fx.ambience ?? 0.35);
     this.ambience.setAudible(!this.el.paused);
     if (this.ambienceKind) this.ambience.set(this.ambienceKind);
+    for (const [id, level] of Object.entries(this.roomMix)) this.ambience.setLayer(id, level);
 
     this.dispatchEvent(new Event('context'));
     return ctx;
@@ -121,6 +123,13 @@ export class AudioEngine extends EventTarget {
   setAmbience(kind) {
     this.ambienceKind = kind;
     this.ambience?.set(kind);
+  }
+
+  // A Room layer the user dialled in. Remembered on the engine so it survives the context
+  // being created late, and so it can be saved with the rest of the settings.
+  setAmbienceLayer(id, level) {
+    this.roomMix[id] = level;
+    this.ambience?.setLayer(id, level);
   }
 
   // A recording (any queued or saved track) to loop as the scene sound instead of the synthesis.
