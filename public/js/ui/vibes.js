@@ -111,11 +111,12 @@ export function buildVibes({ engine, renderer, registry, selectScene, selectPale
       b.setAttribute('aria-pressed', String(on));
     });
   }
-  // Any hand-turned knob means the user has left the vibe: stop claiming it is on.
-  engine.addEventListener('fxchange', (e) => {
-    if (glide || !active || e.detail?.id === '*') return;
-    active = null;
-    setActive();
+  // The glide writes silently, so any fxchange at all is someone else's doing — a knob, a
+  // preset, the XY pad. Hand the sound straight back to them: a glide that kept running
+  // would spend the next two seconds overwriting whatever they just did.
+  engine.addEventListener('fxchange', () => {
+    if (glide) { glide = null; refreshLook(); }
+    if (active) { active = null; setActive(); }
   });
 
   return {

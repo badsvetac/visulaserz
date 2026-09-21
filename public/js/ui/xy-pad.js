@@ -125,8 +125,14 @@ export function buildXYPad({ engine, onChange, lcdShow }) {
   refreshLabels();
   syncToKnobs();
   // Follow the rack when anything else moves it — a preset, the restored settings, a knob.
-  // The pad's own writes are silent, so this can never chase its own tail.
-  engine.addEventListener('fxchange', syncToKnobs);
+  // The pad's own writes are silent, so this can never chase its own tail. A knob turned
+  // during the spring-back also ends the spring, for the same reason a vibe glide stops:
+  // otherwise it would spend the next quarter second undoing their move.
+  engine.addEventListener('fxchange', () => {
+    spring = null;
+    base = null;
+    syncToKnobs();
+  });
 
   return {
     node: el('div', { class: 'xy-wrap' }, surface, modeBtn),
