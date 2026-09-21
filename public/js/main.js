@@ -52,4 +52,7 @@ requestAnimationFrame(frame);
 
 // Handy in the console: visulaserz.analysis.bass, visulaserz.renderer.setScene('tunnel'), and for a
 // scene that is not on the strip: await visulaserz.registry.load('orb'); visulaserz.renderer.setScene('orb')
-window.visulaserz = { engine, analysis, renderer, registry, director, crate, lyrics: ui.lyrics, market: ui.market };
+// `ui` is here so time-based work (vibe glides, the XY spring, tempo sync) can be stepped
+// by hand from the console: a background tab throttles requestAnimationFrame, so waiting
+// for the real loop proves nothing. ui.tick(1/60, analysis) advances exactly one frame.
+window.visulaserz = { engine, analysis, renderer, registry, director, crate, ui, lyrics: ui.lyrics, market: ui.market };

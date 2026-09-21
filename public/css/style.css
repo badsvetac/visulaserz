@@ -436,6 +436,10 @@ button.card-add:active { transform: scale(0.92); }
 .xy-axis-x { bottom: 4px; right: 6px; }
 .xy-axis-y { top: 4px; left: 6px; writing-mode: vertical-rl; }
 
+.vibe-bar { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.vibe-bar .keys { flex: 1; min-width: 0; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: thin; }
+.vibe-bar .key { flex: none; }
+
 .swatches { display: grid; grid-template-columns: repeat(5, 26px); gap: 5px; padding: 2px 0; }
 .swatch { width: 26px; height: 26px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5); transition: transform 0.12s; }
 .swatch:hover { transform: scale(1.1); }
