@@ -5,6 +5,8 @@ const dB = (v) => `${v > 0 ? '+' : ''}${v.toFixed(1)} dB`;
 
 export const FX_PARAMS = {
   speed:        { label: 'Speed',   group: 'Varispeed', min: 0.5,  max: 1.5,  def: 1,    origin: 1, fmt: (v) => `${v.toFixed(2)}×` },
+  filter:       { label: 'Filter',  group: 'Filter',    min: -1,   max: 1,    def: 0,    origin: 0, fmt: (v) => (v < -0.04 ? `LP ${pct(-v)}` : v > 0.04 ? `HP ${pct(v)}` : 'open') },
+  filterReso:   { label: 'Reso',    group: 'Filter',    min: 0,    max: 1,    def: 0.35, fmt: pct },
   reverbMix:    { label: 'Mix',     group: 'Reverb',    min: 0,    max: 1,    def: 0,    fmt: pct },
   reverbSize:   { label: 'Size',    group: 'Reverb',    min: 0.4,  max: 9,    def: 3.2,  curve: 1.8, fmt: (v) => `${v.toFixed(1)} s` },
   reverbTone:   { label: 'Tone',    group: 'Reverb',    min: 0,    max: 1,    def: 0.55, fmt: (v) => (v < 0.34 ? 'dark' : v > 0.66 ? 'bright' : 'warm') },
@@ -21,7 +23,7 @@ export const FX_PARAMS = {
   ambience:     { label: 'Level',   group: 'Ambience',  min: 0,    max: 1,    def: 0.35, fmt: pct },
 };
 
-export const FX_GROUPS = ['Varispeed', 'Reverb', 'Echo', 'Tone', '8D', 'Dirt', 'Ambience'];
+export const FX_GROUPS = ['Varispeed', 'Filter', 'Reverb', 'Echo', 'Tone', '8D', 'Dirt', 'Ambience'];
 
 export function defaultFx() {
   const out = { pitchLock: false };

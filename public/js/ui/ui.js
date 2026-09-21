@@ -6,6 +6,7 @@ import { SYMMETRY_MODES } from '../gfx/renderer.js';
 import { Knob } from './knob.js';
 import { looksLikeYouTube } from './crate.js';
 import { buildStage } from './stage.js';
+import { buildPerform } from './perform.js';
 import { buildMarket, isSceneFile } from './market.js';
 import { buildMeters } from './meters.js';
 import { attachArtwork } from './artwork.js';
@@ -434,7 +435,7 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
 
   // ── rack tabs / collapse ──────────────────────────────────────────────────
   const rack = $('#rack');
-  const units = { sound: soundUnit, vision: visionUnit, stage: $('#unit-stage') };
+  const units = { sound: soundUnit, vision: visionUnit, perform: $('#unit-perform'), stage: $('#unit-stage') };
   function showUnit(name) {
     for (const [k, u] of Object.entries(units)) u.hidden = k !== name;
     document.querySelectorAll('.rack-tabs .tab').forEach((tab) => {
@@ -689,9 +690,10 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
 
   // ── stage pads, meters, artwork ───────────────────────────────────────────
   const stage = buildStage({ engine, analysis, renderer, toast, lcdShow });
+  const perform = buildPerform({ engine, toast, lcdShow, onFxChange: () => { refreshFxKnobs(); markCustom(); } });
   const meters = buildMeters({ engine });
   const artwork = attachArtwork({ engine, renderer });
-  window.addEventListener('keyup', (e) => stage.keyup(e));
+  window.addEventListener('keyup', (e) => { stage.keyup(e); perform.keyup(e); });
   let cycleBeat = 0;
   let cycleClock = 0;
   let lastAmbience = null;
@@ -778,6 +780,7 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     if (e.target.classList?.contains('knob') && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
     if ((tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) || (tag === 'A' && e.key === 'Enter')) return; // a focused button or link acts as one
     if (stage.keydown(e)) { e.preventDefault(); return; }
+    if (perform.keydown(e)) { e.preventDefault(); return; }
     const k = e.key;
     let handled = true;
     if (k === ' ') { if (engine.track) engine.toggle(); else playDemo(); }
@@ -844,6 +847,7 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     market,
     tick(dt, an) {
       market.tick();
+      perform.tick(dt, an);
       if (probation > 0 && (probation -= dt) <= 0 && !renderer.gl.isContextLost()) store.set('probation', null);
       if (!scrubbing) {
         const d = engine.duration;
