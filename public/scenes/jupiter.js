@@ -66,12 +66,12 @@ void main() {
 
     // The Great Red Spot: an anticyclone turning against its jet, faster at the core than the edge.
     float sw = 1.0 + 0.38 * uBass + 0.30 * uBeat * uPunch;  // it breathes with the bass
-    float lon0 = -0.10 + 0.32 * sin(uTime * 0.017);         // it drifts along its belt, never far enough to leave the daylight
-    vec2 e = vec2((lon - lon0) / (0.40 * sw), (lat + 0.36) / (0.165 * sw));
+    float lon0 = -0.30 + 0.16 * sin(uTime * 0.017);         // it drifts along its belt, never far enough to carry its body into the night
+    vec2 e = vec2((lon - lon0) / (0.21 * sw), (lat + 0.36) / (0.090 * sw));  // narrow enough to sit inside one belt, as the real one does
     float rs = length(e);
     vec2 ew = rot(-(uTime * 0.30 + (1.0 - clamp(rs, 0.0, 1.0)) * 2.6)) * e;
     float swirl = fbm(ew * 1.8 + vec2(7.3, 2.1));
-    vec3 spotCol = mix(vec3(0.74, 0.25, 0.14), pal(0.0), 0.30) * (0.55 + 0.9 * swirl) * (0.8 + 0.9 * uBass);
+    vec3 spotCol = mix(vec3(0.74, 0.25, 0.14), pal(0.0), 0.30) * (0.55 + 0.9 * swirl) * (0.70 + 0.55 * uBass);
     cloud = mix(cloud, deep * 0.75, (1.0 - ss(0.0, 0.12, abs(rs - 1.08))) * 0.45);   // the collar the storm sweeps clear
     cloud = mix(cloud, spotCol, (1.0 - ss(0.72, 1.02, rs)) * 0.92);
 
