@@ -412,26 +412,39 @@ button.card-add:active { transform: scale(0.92); }
 .perform-echo .stage-row { flex: none; }
 .perform-gate { display: flex; align-items: center; gap: 10px; }
 
-/* ── room mixer ─────────────────────────────────────────────────────────── */
-.room { display: flex; gap: 7px; align-items: flex-end; padding-left: 4px; }
-.room-strip { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-.room-name { font: 400 8px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
-.room-strip.is-on .room-name { color: var(--beam); }
-.room-fader {
-  -webkit-appearance: slider-vertical; appearance: slider-vertical;
-  writing-mode: vertical-lr; direction: rtl;
-  width: 15px; height: 46px; margin: 0; padding: 0;
-  accent-color: var(--beam); background: transparent; cursor: ns-resize;
+/* ── faders / room mixer ────────────────────────────────────────────────── */
+/* Drawn by hand rather than with <input type="range">: the vertical form of a range input
+   renders natively in current Chrome, which throws away the thumb styling. See fader.js. */
+.fader { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 38px; cursor: ns-resize; touch-action: none; border-radius: 4px; padding: 2px 0; }
+.fader-slot {
+  position: relative; width: 5px; height: 44px; border-radius: 3px;
+  background: #14141b; border: 1px solid var(--etch-strong);
+  box-shadow: inset 0 1px 3px #000;
 }
-.room-fader::-webkit-slider-runnable-track { width: 3px; background: var(--etch-strong); border-radius: 2px; }
-.room-fader::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 15px; height: 9px; border-radius: 2px;
-  background: linear-gradient(180deg, #4a4a58, #22222c);
-  border: 1px solid var(--etch-strong); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+.fader-fill {
+  position: absolute; left: 0; right: 0; bottom: 0; border-radius: 3px;
+  background: var(--beam); box-shadow: 0 0 6px rgba(var(--beam-rgb), 0.7);
+  transition: height 0.05s linear;
 }
-.room-strip.is-on .room-fader::-webkit-slider-thumb { border-color: var(--beam); box-shadow: 0 0 7px rgba(var(--beam-rgb), 0.7); }
-.room-fader::-moz-range-track { width: 3px; background: var(--etch-strong); border-radius: 2px; }
-.room-fader::-moz-range-thumb { width: 15px; height: 9px; border-radius: 2px; background: #33333f; border: 1px solid var(--etch-strong); }
+.fader-cap {
+  position: absolute; left: 50%; width: 17px; height: 9px; border-radius: 2px;
+  margin: 0 0 -4.5px -8.5px;
+  background: linear-gradient(180deg, #4d4d5b, #20202a);
+  border: 1px solid var(--etch-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: bottom 0.05s linear;
+}
+/* A cap line, like the pointer on the knob caps, so the throw is readable at a glance. */
+.fader-cap::after { content: ''; position: absolute; left: 2px; right: 2px; top: 3px; height: 1px; background: var(--silk); opacity: 0.55; }
+.fader.is-on .fader-cap { border-color: rgba(var(--beam-rgb), 0.8); }
+.fader:hover .fader-cap, .fader.is-active .fader-cap { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(var(--beam-rgb), 0.6); }
+.fader.is-active .fader-cap::after, .fader:hover .fader-cap::after { opacity: 1; }
+/* Michroma is a wide face and these columns are narrow, so the labels use the body font:
+   at 8 px display type "WAVES" is wider than its own fader and collides with the next. */
+.fader-name { font: 500 9.5px/1 var(--font-body); letter-spacing: 0.04em; text-transform: uppercase; color: var(--dim); white-space: nowrap; }
+.fader.is-on .fader-name { color: var(--silk); }
+
+.room { display: flex; gap: 2px; align-items: center; padding-left: 4px; }
 
 .xy-wrap { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .xy {
@@ -458,9 +471,6 @@ button.card-add:active { transform: scale(0.92); }
 .xy-axis-x { bottom: 4px; right: 6px; }
 .xy-axis-y { top: 4px; left: 6px; writing-mode: vertical-rl; }
 
-.vibe-bar { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.vibe-bar .keys { flex: 1; min-width: 0; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: thin; }
-.vibe-bar .key { flex: none; }
 
 .swatches { display: grid; grid-template-columns: repeat(5, 26px); gap: 5px; padding: 2px 0; }
 .swatch { width: 26px; height: 26px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5); transition: transform 0.12s; }

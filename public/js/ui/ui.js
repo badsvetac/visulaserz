@@ -7,7 +7,6 @@ import { Knob } from './knob.js';
 import { looksLikeYouTube } from './crate.js';
 import { buildStage } from './stage.js';
 import { buildPerform } from './perform.js';
-import { buildVibes } from './vibes.js';
 import { buildRoom } from './room.js';
 import { buildMarket, isSceneFile } from './market.js';
 import { buildMeters } from './meters.js';
@@ -398,12 +397,9 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     lookKnobs[id] = { knob, get: opts.get || (() => renderer.look[id]) };
     return knob.el;
   }
-  const vibes = buildVibes({ engine, renderer, registry, selectScene, selectPalette, refreshLook, toast, lcdShow, saveSettings });
-
   const t = renderer.trail;
   visionUnit.append(
     sceneBar,
-    el('div', { class: 'vibe-bar' }, el('span', { class: 'strip-label' }, 'Vibes'), vibes.node),
     lookRow,
     el('div', { class: 'knob-row' },
       group('Palette', swatches, hueDrift, cycleBtn),
@@ -800,7 +796,6 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     else if (k === 'p' || k === 'P') nextPalette(e.shiftKey ? -1 : 1);
     else if (k === '.' || k === ',') { const i = Math.max(0, FX_PRESETS.findIndex((p) => p.id === activePreset)); const p = FX_PRESETS[(i + (k === '.' ? 1 : -1) + FX_PRESETS.length) % FX_PRESETS.length]; applyPreset(p, presetValues(p)); }
     else if (k === 'a' || k === 'A') autoBtn.click();
-    else if (k === '=' || k === '-') vibes.step(k === '=' ? 1 : -1); // G is the Throw pad
     else if (k === 'f' || k === 'F') toggleFullscreen();
     else if (k === 'h' || k === 'H') setHidden(!body.classList.contains('is-hidden'));
     else if (k === 'c' || k === 'C') openCrate(!crateEl.classList.contains('is-open'));
@@ -859,7 +854,6 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     tick(dt, an) {
       market.tick();
       perform.tick(dt, an);
-      vibes.tick(dt);
       if (probation > 0 && (probation -= dt) <= 0 && !renderer.gl.isContextLost()) store.set('probation', null);
       if (!scrubbing) {
         const d = engine.duration;
