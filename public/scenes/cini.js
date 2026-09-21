@@ -50,7 +50,9 @@ float carn(vec2 m, float o, float k) {
   vec2 v = m - vec2(-0.010, 0.0);
   float ang = atan(v.y, v.x);
   float rim = k * ((0.150 + 0.055 * o) * cos(ang * 0.40) + 0.020 * cos(ang * 13.0));   // five teeth
-  return max(length(v) - rim, abs(ang) - 1.25);
+  // the fan is cut off at its sides; the cut is measured across the petal, not in radians,
+  // so the contour drawn round it comes out the same width as everywhere else
+  return max(length(v) - rim, (abs(ang) - 1.25) * 0.15);
 }
 // saz leaf: lance-shaped, pinched to a point at both ends, bending away as it runs outward
 float saz(float rr, float y, float o) {
@@ -121,11 +123,14 @@ void main() {
 
   // the rosette: four rings of eight petals, ring j opening and closing on its own band
   for (int j = 0; j < 4; j++) {
-    float fj = float(j), b = rb[j];
+    float fj = float(j);
+    float b = fj < 0.5 ? rb.x : fj < 1.5 ? rb.y : fj < 2.5 ? rb.z : rb.w;
     float rad = 0.085 + fj * 0.078 + b * 0.028;
     float ax = mod(fj, 2.0) < 0.5 ? af : ab;             // rings alternate into the gaps of the one below
     float w = 0.028 + 0.015 * b;
-    float d = length(vec2((r - rad) / (w * 1.55), ax * r / w)) - 1.0;
+    // a petal is an ellipse half again as long as it is wide, measured in tile units and not in
+    // multiples of its own width — the brush edge and the contour have to stay the same size
+    float d = length(vec2((r - rad) / 1.55, ax * r)) - w;
     float ci = mod(fj + 1.0, 3.0);
     col = mix(col, pig(ci) * (0.72 + 0.60 * b), inked(d));
     rel = max(rel, inked(d) * step(1.5, ci));

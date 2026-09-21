@@ -80,10 +80,14 @@ void main() {
     if (tt < wEnd) {
       float f = tt / max(wEnd, 1e-3);
       vec3 w = mix(mix(vec3(0.10, 0.60, 0.70), pal(0.56), 0.25), vec3(0.74, 0.95, 0.95), ss(0.05, 0.95, f));
-      float rip = sin(wx * 22.0 - t * 1.8 + 2.0 * sin(wx * 7.0 + t * 0.6) + fi);
-      w *= 0.93 + 0.12 * rip;
+      // Ripple crests run across the basin, parallel to the rim that dams the pool, and crowd
+      // together toward the far edge the way any flat surface does in perspective. Phasing them
+      // on wx alone would stripe the water vertically, which reads as a fence, not as water.
+      float rip = sin(f * 10.0 + f * f * 20.0 - t * 3.0 + 1.6 * sin(wx * 2.5 + t * 0.5) + fi);
+      float ripAmp = ss(8.0, 2.5, fi);                              // a far basin is a few pixels tall: ripples up there only crawl
+      w *= 0.93 + 0.12 * rip * ripAmp;
       w = mix(w, vec3(1.0, 0.98, 0.93), ss(0.55, 1.0, f) * 0.45);   // sky reflects hardest at the grazing far edge
-      w += vec3(1.0, 0.98, 0.92) * ss(0.88, 1.0, rip) * (0.25 + 0.8 * uHigh) * (0.4 + 0.6 * LEV[idx]);
+      w += vec3(1.0, 0.98, 0.92) * ss(0.88, 1.0, rip) * ripAmp * (0.25 + 0.8 * uHigh) * (0.4 + 0.6 * LEV[idx]);
       c = w;
     }
     c = mix(c, vec3(1.0, 0.99, 0.95), ss(0.045, 0.0, abs(tt - wEnd)) * 0.5 * (1.0 - ss(WALL, WALL + 0.03, tt)));

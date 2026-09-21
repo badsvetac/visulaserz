@@ -23,14 +23,17 @@ float sdSeg(vec2 p, vec2 a, vec2 b) {
 vec3 seedAt(float b) {
   vec2 c = vec2(hash11(b * 1.73 + 0.31), hash11(b * 2.91 + 5.17)) * 2.0 - 1.0;
   c = sign(c) * (0.32 + 0.68 * abs(c));                       // glass is coldest near the frame, so seeds crowd the edges
-  return vec3(c.x * (uRes.x / uRes.y) * 0.78, c.y * 0.80, 0.11 + 0.13 * hash11(b * 4.13 + 2.7));
+  // Reach: frost that only spans a twentieth of the pane reads as a scratch, not as weather.
+  // At 0.28…0.62 the arms cross a good third of the height and neighbouring crystals interlock,
+  // which is what window frost actually does.
+  return vec3(c.x * (uRes.x / uRes.y) * 0.78, c.y * 0.80, 0.28 + 0.34 * hash11(b * 4.13 + 2.7));
 }
 
 // One arm in its own frame: q.x runs along the spine, q.y is already mirrored, so a branch drawn
 // once shows on both sides. Only the few branch roots behind this pixel can win the min.
 float armField(vec2 q, float L, float sd) {
-  float d = sdSeg(q, vec2(0.0), vec2(L, 0.0)) - 0.0028;
-  float sp = 0.026;
+  float d = sdSeg(q, vec2(0.0), vec2(L, 0.0)) - 0.0060;
+  float sp = 0.038;                                           // branch spacing grows with the crystal, so the ferns stay countable
   float j0 = floor(q.x / sp);
   for (int k = 0; k < 4; k++) {
     float bx = (j0 - float(k)) * sp;                          // roots ahead of the pixel can never win, so start at j0
@@ -38,7 +41,7 @@ float armField(vec2 q, float L, float sd) {
     if (bx > 0.010 && rem > 0.006) {
       float h = hash11(bx * 137.0 + sd * 3.3);
       float bl = rem * (0.38 + 0.30 * h);                     // a branch never outruns the tip
-      d = min(d, sdSeg(q, vec2(bx, 0.0), vec2(bx + bl * 0.5, bl * 0.866)) - 0.0013 * (0.6 + h));
+      d = min(d, sdSeg(q, vec2(bx, 0.0), vec2(bx + bl * 0.5, bl * 0.866)) - 0.0030 * (0.6 + h));
     }
   }
   return d;
@@ -57,7 +60,9 @@ float crystal(vec2 p, vec2 c, float R, float sd, float grow) {
     float idx = i0 + (k == 0 ? 0.0 : (f < i0 ? -1.0 : 1.0));
     float ia = mod(idx, 6.0);                                 // +3 and -3 are the same arm, the one at 180 degrees:
     int bi = int(clamp(ia, 0.0, 5.0));                        // seed it identically from either side or it splits down the spine
-    float L = max(R * grow * (0.26 + 0.82 * gBand[bi]) * (0.78 + 0.44 * hash11(sd * 5.77 + ia * 1.7)), 0.004);
+    // A quiet band should still leave an arm you can see, or the crystal loses its six-fold
+    // shape in the gaps between notes; the band decides how far it reaches past that floor.
+    float L = max(R * grow * (0.46 + 0.70 * gBand[bi]) * (0.78 + 0.44 * hash11(sd * 5.77 + ia * 1.7)), 0.004);
     vec2 rv = rot(-ia * (TAU / 6.0)) * v;
     d = min(d, armField(vec2(rv.x, abs(rv.y)), L, sd + ia));
   }
@@ -90,13 +95,13 @@ void main() {
 
   float rough = (fbm(p * 24.0) - 0.48) * 0.012;               // frost edges are furry, never machined
   float ice = 0.0, halo = 0.0, dm = 1e3, wm = 0.0;
-  for (int k = 0; k < 6; k++) {
+  for (int k = 0; k < 9; k++) {
     float fk = float(k);
     float b = uBeatCount - fk;
     vec3 s = seedAt(b);
     float grow = k == 0 ? ss(0.0, 0.40, uBeatAge) : 1.0;      // only the last beat is knowable; the rest finished growing
-    float w = (1.0 - fk / 6.0) * (1.0 - fk / 6.0);            // older crystals sink back into the glass
-    if (k == 5) w *= 1.0 - ss(0.0, 0.40, uBeatAge);           // the oldest thaws out exactly as the newest comes in
+    float w = (1.0 - fk / 9.0) * (1.0 - fk / 9.0);            // older crystals sink back into the glass
+    if (k == 8) w *= 1.0 - ss(0.0, 0.40, uBeatAge);           // the oldest thaws out exactly as the newest comes in
     float d = crystal(p, s.xy, s.z, b, grow) + rough;
     ice = max(ice, (1.0 - ss(0.0, px * 2.0, d)) * w);
     halo = max(halo, exp(-max(d, 0.0) * 60.0) * w);
@@ -106,7 +111,7 @@ void main() {
   // rime creeping in from the frame: needles run inwards, so the noise is stretched across them
   float rim = ss(0.55, 1.02, abs(p.x) / aspect) * ss(0.40, 0.78, fbm(vec2(p.y * 70.0, p.x * 7.0)))
             + ss(0.55, 1.02, abs(p.y)) * ss(0.40, 0.78, fbm(vec2(p.x * 70.0, p.y * 7.0)));
-  ice = max(ice, clamp(rim, 0.0, 1.0) * (0.25 + 0.55 * ss(0.05, 0.6, uLevel)));
+  ice = max(ice, clamp(rim, 0.0, 1.0) * (0.45 + 0.50 * ss(0.05, 0.6, uLevel)));
 
   vec3 cold = vec3(0.72, 0.84, 0.98);
   vec3 col = back;

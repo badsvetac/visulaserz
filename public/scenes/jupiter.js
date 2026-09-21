@@ -8,7 +8,13 @@
 // One anticyclone rides the southern belt, turning against the jets and swelling with the bass.
 // Beats fire lightning inside the clouds, and only the night side of the terminator shows it.
 const frag = `
-const float R = 1.9;     // the camera sits close: the limb only just clears the sides of the frame
+// The disc has to FIT. With rd = normalize(vec3(p, 2.0)) the vertical half-angle of the frame is
+// atan(1/2) = 26.6 degrees, so the camera must stand far enough back that asin(R / dist) lands
+// comfortably inside that: 1.9 / 5.1 gives 21.9 degrees, which fills about four fifths of the
+// height and leaves the limb and the poles on screen. At the 3.4 this started with, the planet
+// subtended 34 degrees and overflowed the frame — all you ever saw was a piece of one storm.
+const float R = 1.9;
+const float DIST = 5.1;
 const float NB = 11.0;   // zonal jets, one per frequency band
 
 float beltBand(float bi) { return spec(clamp((bi + 0.5) / NB, 0.0, 1.0) * 0.9 + 0.03); }
@@ -18,7 +24,7 @@ float beltDrift(float bi) { return (mod(bi, 2.0) < 0.5 ? -1.0 : 1.0) * (0.09 + 0
 void main() {
   vec2 p = centered() * (1.0 - uBeat * 0.008 * uPunch);
   p.x -= uBalance * 0.05;
-  vec3 ro = vec3(0.0, 0.0, -3.4);
+  vec3 ro = vec3(0.0, 0.0, -DIST);
   vec3 rd = normalize(vec3(p, 2.0));
   vec3 sunDir = normalize(vec3(-0.90, 0.34, -0.26));       // sun off to our left and well behind, so the right third of the disc is night
   vec3 haze = mix(vec3(0.70, 0.80, 1.0), pal(0.55), 0.45);
@@ -61,8 +67,8 @@ void main() {
     vec3 deep  = mix(vec3(0.26, 0.15, 0.11), pal(0.93), 0.22);
     float zone = mix(mod(bi, 2.0), mod(bi + 1.0, 2.0), f);  // pale zones alternate with dark belts
     vec3 cloud = mix(mix(ochre, cream, ss(0.38, 0.78, cl)), mix(deep, ochre, ss(0.30, 0.62, cl)), zone);
-    cloud *= 0.72 + 0.75 * band;
-    cloud += cream * ss(0.74, 0.96, cl) * band * 1.1;       // white plumes pop in whichever belt is loudest
+    cloud *= 0.70 + 0.50 * band;                            // a loud belt brightens, but not far enough to flatten into white
+    cloud += cream * ss(0.74, 0.96, cl) * band * 0.65;      // white plumes pop in whichever belt is loudest
 
     // The Great Red Spot: an anticyclone turning against its jet, faster at the core than the edge.
     float sw = 1.0 + 0.38 * uBass + 0.30 * uBeat * uPunch;  // it breathes with the bass
@@ -84,19 +90,21 @@ void main() {
     float flash = 0.0, halo = 0.0;
     for (int i = 0; i < 3; i++) {
       float fi = float(i);
-      vec2 lp = vec2(0.55 + hash11(uBeatCount * 1.7 + fi * 3.1) * 0.95, (hash11(uBeatCount * 2.9 + fi * 5.3) - 0.5) * 1.3);
+      // kept just past the terminator and around the sub-viewer latitude, so a strike always lands
+      // on the part of the night side that actually faces us instead of behind the limb
+      vec2 lp = vec2(0.34 + hash11(uBeatCount * 1.7 + fi * 3.1) * 0.52, 0.18 + (hash11(uBeatCount * 2.9 + fi * 5.3) - 0.5) * 1.05);
       vec2 dl = vec2(lon, lat) - lp;
       float age = uBeatAge * (1.0 + 0.5 * fi);
       float strobe = exp(-age * 11.0) * (0.55 + 0.45 * sin(age * 80.0 + fi));
       flash += exp(-dot(dl, dl) * 150.0) * strobe;
-      halo  += exp(-dot(dl, dl) * 16.0) * strobe * 0.30;
+      halo  += exp(-dot(dl, dl) * 30.0) * strobe * 0.16;   // the cloud deck lit from within, not a flash across the whole night side
     }
     shade += mix(vec3(0.78, 0.86, 1.0), pal(0.6), 0.25) * (flash * ss(0.35, 0.68, cl) + halo) * (1.0 - day) * 2.0 * uPunch;
 
     // atmosphere: a broad fresnel glow and the thin bright edge of the disc itself
     float fres = 1.0 - mu;
     shade += haze * fres * fres * fres * fres * fres * (0.45 + 0.6 * uLevel + 0.5 * uBeat * uPunch) * ss(-0.35, 0.45, lit);
-    shade += haze * (1.0 - ss(0.0, 0.09, mu)) * (0.25 + 0.45 * day);
+    shade += haze * (1.0 - ss(0.0, 0.09, mu)) * (0.10 + 0.55 * day);   // barely there on the night limb, so the lightning still reads
     col = shade;
   }
   outColor = vec4(col, 1.0);
