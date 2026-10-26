@@ -43,6 +43,53 @@ What makes a scene feel at home here:
 - **Respect "Reduce flashing".** No full-screen white strobes when it is on.
 - **Make it your own.** Original work only. Do not paste shaders from Shadertoy or elsewhere unless their license is compatible with the AGPL and you keep the credit.
 
+## Add a tool
+
+Tools are the other kind of plugin: panels on the desk that play along with the music or bend it (Beat Roll, Drum Pads, Theremin, Chords, the Studio). Each is `public/tools/<id>.js`, open the market's **Tools** tab to see them all.
+
+A tool's default export describes itself and builds its panel:
+
+```js
+export default {
+  id: 'mytool',                 // the file name, lowercase letters, digits and dashes
+  name: 'My Tool',
+  group: 'Rhythm',              // Studio, Pads, Rhythm, Instruments or FX
+  blurb: 'One sentence for the market card',
+  tags: ['loop', 'beat'],
+  size: { w: 400, h: 220 },     // the panel's size; add resizable: true to let people drag it
+  create(host, mount) {
+    // build the controls into `mount`, wire up the sound, then return the hooks you need:
+    return { tick(dt) {}, keydown(e) { return false; }, keyup(e) {}, release() {}, destroy() {} };
+  },
+};
+```
+
+A tool only touches the app through `host` (see `public/js/tools/host.js`, every member is commented):
+
+- `host.audio` puts an effect into one of the slots on the mix (`insert`), or on the track alone with `{ music: true }`. It also gives you the bus to play your own sound into (`input`), lets you hand over the nodes you create (`own`) so they are let go when the panel closes, and registers AudioWorklet processors (`worklet`). `spectrum()` and `muteMusic(level)` are there too.
+- `host.clock` is the beat grid: `bpm`, `period`, and `next(div)`, `last(div)` and `quantise(div)` to land on it.
+- `host.ui` makes knobs, pads, toggles and cycle buttons that look and behave like the rest of the rack (MIDI learn included).
+- `host.visual` lets the tool flash (`hit`), shock or bend the picture.
+- `host.store` keeps the tool's settings between visits.
+- Shared helpers live in `public/tools/lib/`: `key.js` finds the song's key, `tape.js` records the music for rolls, loops and chops.
+
+Beat Roll (`roll.js`, about 130 lines) is the shortest complete example; read it first.
+
+Rules that keep the desk healthy:
+
+- **Never cut the music.** An effect you `insert` must pass the sound through unchanged until the player touches it.
+- **Clean up.** Hand every node you create to `host.audio.own()`, and stop anything that runs in `destroy()`.
+- **Start sound only from a click or a key.** Browsers refuse audio before a gesture; `host.audio.ensure()` wakes it.
+- **Check the market first.** Seventeen tools exist; a new one should do something none of them does.
+
+Then list it and give it a card picture:
+
+```bash
+npm run tools
+```
+
+The card is a hand-drawn SVG, `public/tools/thumbs/<id>.svg`, 320×180, in the pink accent `#ff4fd8` on dark (copy one of the others). Keep the bottom-left corner clear: the name sits there. Commit the tool, `public/tools/catalog.json` and the SVG together.
+
 ## Bugs and other changes
 
 - Open an issue first for anything bigger than a small fix, so we can agree on the shape before you spend the time.

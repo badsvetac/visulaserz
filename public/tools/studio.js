@@ -28,9 +28,10 @@ import { TAPE_SOURCE } from './lib/tape.js';
 // Ctrl+C, Ctrl+V, Ctrl+B, Delete and the arrows. With the typing keyboard off: L switches PAT and
 // SONG, and P B D E pick the tools.
 
-// a phone or a small tablet (the tools are plugins and keep to themselves, so this is worked out here)
+// a phone or a small tablet (the tools are plugins and keep to themselves, so this is worked out here;
+// `npm run tools` imports this file in Node, which has a navigator but no matchMedia or screen)
 const SMALL_DEVICE = /Android|Mobi|iP(hone|ad|od)/i.test(navigator.userAgent) || !!navigator.userAgentData?.mobile
-  || (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820);
+  || (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820);
 const PIANO = 'zsxdcvgbhnjm,l.;/'.split('');
 const PIANO_HI = 'q2w3er5t6y7ui9o0p'.split('');
 const WINDOWS = {
