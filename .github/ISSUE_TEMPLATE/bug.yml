@@ -1,0 +1,28 @@
+name: Bug
+description: Something does not work as it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Security problems do not go here. See SECURITY.md for private reporting.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to see it
+      placeholder: "1. Open the market\n2. Try the Rain scene\n3. ..."
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: visulaserz.com or a local copy (which commit), the browser and the device
+      placeholder: "visulaserz.com, Chrome 141, Windows 11 laptop"
+    validations:
+      required: true

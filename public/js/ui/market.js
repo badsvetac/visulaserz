@@ -160,7 +160,7 @@ export function buildMarket({ registry, renderer, analysis, director, selectScen
     let items = registry.shelf.map((e) => ({ ...e, installed: registry.isInstalled(e.id) }));
     if (filter === 'mine') items = items.filter((e) => e.installed);
     else if (filter !== 'all') items = items.filter((e) => e.group === filter);
-    if (q) items = items.filter((e) => `${e.name} ${e.group} ${e.blurb} ${(e.tags || []).join(' ')}`.toLowerCase().includes(q));
+    if (q) items = items.filter((e) => `${e.name} ${e.group} ${e.blurb} ${(e.tags || []).join(' ')} ${e.author?.name || ''}`.toLowerCase().includes(q));
     if (sort === 'A–Z') items.sort((a, b) => a.name.localeCompare(b.name));
     else if (sort === 'Match') {
       const music = { energy: analysis.energy, energyAvg: director.energyAvg, bpm: analysis.bpm, bass: analysis.bass, mid: analysis.mid, high: analysis.high };
@@ -194,7 +194,7 @@ export function buildMarket({ registry, renderer, analysis, director, selectScen
   const cards = new Map();
   function card(e) {
     const builtIn = e.id === BUILT_IN;
-    const key = `${e.name}|${e.group}|${e.blurb}|${e.thumb}|${e.requiresAccount}`;
+    const key = `${e.name}|${e.group}|${e.blurb}|${e.thumb}|${e.requiresAccount}|${e.author?.name}|${e.author?.url}`;
     let c = cards.get(e.id);
     if (!c || c.key !== key) {
       const state = el('span', { class: 'card-state' });
@@ -211,7 +211,10 @@ export function buildMarket({ registry, renderer, analysis, director, selectScen
       const action = builtIn
         ? el('span', { class: 'card-add is-fixed', title: 'Built in: always on the strip' }, icon('check'))
         : el('button', { class: 'card-add', type: 'button', onclick: (ev) => { if (ev.detail > 1) return; if (registry.isInstalled(e.id)) remove(e.id); else add(e.id); } }, idle, hover);
-      c = { key, shot, state, action, idle, hover, installed: null, node: el('li', {}, shot, action, e.blurb ? el('p', { class: 'card-blurb' }, e.blurb) : null) };
+      // Community scenes credit their maker; the catalogue only lets https links through.
+      const credit = e.author?.name ? el('p', { class: 'card-author' }, 'by ',
+        /^https:\/\//.test(e.author.url || '') ? el('a', { href: e.author.url, target: '_blank', rel: 'noopener noreferrer' }, e.author.name) : e.author.name) : null;
+      c = { key, shot, state, action, idle, hover, installed: null, node: el('li', {}, shot, action, e.blurb ? el('p', { class: 'card-blurb' }, e.blurb) : null, credit) };
       cards.set(e.id, c);
     }
     const live = renderer.sceneId === e.id;

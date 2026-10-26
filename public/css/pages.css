@@ -79,6 +79,8 @@ h1.plate { font: 400 clamp(32px, 5.4vw, 62px)/1.08 var(--font-display); letter-s
 .intro-main > p:not(.eyebrow):not(.lead) { max-width: 62ch; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 26px; }
 .access { font: 400 12px/1.5 var(--font-mono); color: var(--dim); }
+.credit { font: 400 13px/1.5 var(--font-mono); color: var(--dim); }
+.credit a { color: var(--bright); }
 .facts { padding: 4px 0 0 28px; border-left: 1px solid var(--etch); }
 .foot-h { margin: 0 0 10px; font: 500 10.5px/1.4 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0 0 24px; padding: 0; }

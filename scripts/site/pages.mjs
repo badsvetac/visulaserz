@@ -122,6 +122,7 @@ export function buildSite({ scenes, tools, sceneOg, toolOg, cards, css }) {
     const sentence = s.blurb.replace(/[.\s]*$/, '.');
     const alt = `${s.name}, a Visulaserz music visualizer scene: ${s.blurb}`;
     const access = s.requiresAccount ? 'Free account: an email and a password, nothing to pay.' : 'Works without an account.';
+    const credit = s.author ? `<p class="credit">Made by ${s.author.url ? `<a href="${esc(s.author.url)}" rel="noopener">${esc(s.author.name)}</a>` : esc(s.author.name)}, from the Visulaserz community.</p>` : '';
     const groupLine = SCENE_GROUPS[s.group] ? `It is in the ${s.group} room, with the ${s.group === 'Show' ? 'club and stage pictures' : s.group === 'Journey' ? 'journeys' : s.group === 'Vibe' ? 'calm places' : s.group === 'Things' ? 'objects that play the music' : 'mathematics and physics'}.` : '';
     const description = fit(sentence, [` A free music visualizer scene: drop a track, watch ${s.name} move with it, record a video.`, ' A free music visualizer scene for your browser.', ' Free, in your browser.']);
     const trail = [['/', 'Visulaserz'], ['/scenes', 'Scenes'], [`/scenes#${slug(s.group)}`, s.group], [route, s.name]];
@@ -137,7 +138,7 @@ export function buildSite({ scenes, tools, sceneOg, toolOg, cards, css }) {
 <h1${plate(s.name)}>${esc(s.name)}</h1>
 <p class="lead">${esc(sentence)}</p>
 <p>${esc(e.text)} ${esc(groupLine)}</p>
-<div class="actions"><a class="btn btn-primary" href="${href(`/?scene=${s.id}`)}">Open ${esc(s.name)} in Visulaserz</a><span class="access">${esc(access)}</span></div>
+${credit}<div class="actions"><a class="btn btn-primary" href="${href(`/?scene=${s.id}`)}">Open ${esc(s.name)} in Visulaserz</a><span class="access">${esc(access)}</span></div>
 </div>
 <aside class="facts"><p class="foot-h">Plays well with</p><ul class="chips">${e.genres.map((g) => `<li>${esc(g)}</li>`).join('')}</ul><p class="foot-h">Look</p><ul class="chips chips-quiet">${s.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></aside>
 </section>
@@ -145,7 +146,7 @@ export function buildSite({ scenes, tools, sceneOg, toolOg, cards, css }) {
 <section class="band wrap"><h2>Scenes like ${esc(s.name)}</h2><ul class="cards">${related(s).map((o) => sceneCard(o)).join('')}</ul><p class="more-line"><a href="${href(`/scenes#${slug(s.group)}`)}">All ${esc(s.group)} scenes</a> · <a href="${href('/scenes')}">All ${scenes.length} scenes</a></p></section>`;
     pages.push(page({
       route, title: `${s.name} — Music Visualizer Scene | Visulaserz`, ogTitle: `${s.name} · music visualizer scene`, description, image, imageAlt: alt, body,
-      ld: [breadcrumbLd(trail), { '@type': 'WebPage', '@id': ORIGIN + route, url: ORIGIN + route, name: `${s.name} — music visualizer scene`, description, inLanguage: 'en', isPartOf: { '@id': `${ORIGIN}/#website` }, about: { '@id': `${ORIGIN}/#app` }, primaryImageOfPage: { '@type': 'ImageObject', contentUrl: ORIGIN + image, width: 1200, height: 630 } }, APP],
+      ld: [breadcrumbLd(trail), { '@type': 'WebPage', '@id': ORIGIN + route, url: ORIGIN + route, name: `${s.name} — music visualizer scene`, description, inLanguage: 'en', isPartOf: { '@id': `${ORIGIN}/#website` }, about: { '@id': `${ORIGIN}/#app` }, primaryImageOfPage: { '@type': 'ImageObject', contentUrl: ORIGIN + image, width: 1200, height: 630 }, ...(s.author ? { creator: { '@type': 'Person', name: s.author.name, ...(s.author.url ? { url: s.author.url } : {}) } } : {}) }, APP],
     }));
   });
 

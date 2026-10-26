@@ -14,7 +14,7 @@ Open <http://localhost:4777>. The app has no runtime dependencies; YouTube impor
 
 Every scene is a plugin in `public/scenes/<id>.js` whose default export describes itself: `id`, `name`, `group` (Show, Journey, Vibe, Things or Lab), `blurb`, `tags`, `energy`, its trail settings and the `frag` shader. The README's "Scene guide" and "Make it yours" sections list the signals a shader can read and the optional `points` and `sim` extras.
 
-1. Copy a scene close to what you have in mind, rename the file and its `id` (lowercase letters, digits and dashes), and rewrite `main()`.
+1. Copy a scene close to what you have in mind, rename the file and its `id` (lowercase letters, digits and dashes), and rewrite `main()`. Add `author: { name: 'Your Name', url: 'https://github.com/you' }` to the export: your name is shown on the scene's market card and on its page at visulaserz.com, linked to the url (https only; leave `url` out for a plain name).
 2. Try it without any tooling: download the template from the bottom of the market, or drop your `.glsl` file on the page. It compiles on the spot and errors come back with your own line numbers.
 3. Run the lab and press **Check all**:
 

@@ -32,6 +32,14 @@ for (const file of files) {
   if (!scene || scene.id !== id) { problems.push(`${file}: the default export's id must be "${id}"`); continue; }
   if (typeof scene.frag !== 'string' || !/\bvoid\s+main\s*\(/.test(scene.frag)) { problems.push(`${file}: "frag" must be a shader with a main()`); continue; }
   if (!scene.name || !scene.group) { problems.push(`${file}: "name" and "group" are required`); continue; }
+  // Optional credit for community scenes: `author: { name, url }`, shown on the market card and the
+  // scene's page. The url is a link people will click, so only https is let through.
+  const { author } = scene;
+  if (author !== undefined && (typeof author?.name !== 'string' || !author.name.trim() || author.name.length > 60
+    || (author.url !== undefined && !/^https:\/\/[^\s"'<>]+$/.test(author.url)))) {
+    problems.push(`${file}: "author" must be { name } or { name, url } with a name up to 60 characters and an https url`);
+    continue;
+  }
   scenes.push({
     id,
     name: scene.name,
@@ -41,6 +49,7 @@ for (const file of files) {
     energy: Number.isFinite(scene.energy) ? scene.energy : 0.5,
     file,
     thumb: thumbs.has(`${id}.webp`) ? `thumbs/${id}.webp` : null,
+    ...(author ? { author: { name: author.name.trim(), ...(author.url ? { url: author.url } : {}) } } : {}),
   });
 }
 

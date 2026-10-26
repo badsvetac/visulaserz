@@ -1,0 +1,35 @@
+name: Scene idea
+description: Propose a new scene, or claim one to build
+title: "Scene: "
+labels: ["scene"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A scene is one file in `public/scenes/`. CONTRIBUTING.md walks through writing one. Ideas without code are welcome too: someone else may build it.
+  - type: textarea
+    id: picture
+    attributes:
+      label: The picture
+      description: What is on screen? A place, an object, a pattern. A reference image or link helps.
+    validations:
+      required: true
+  - type: textarea
+    id: music
+    attributes:
+      label: How it moves with the music
+      description: Which element follows the bass, the mids and the highs, and what happens on the beat?
+      placeholder: "One lantern per band; on the beat a new lantern is released and rises."
+    validations:
+      required: true
+  - type: dropdown
+    id: group
+    attributes:
+      label: Room
+      options: [Show, Journey, Vibe, Things, Lab, Not sure]
+  - type: checkboxes
+    id: build
+    attributes:
+      label: Building it
+      options:
+        - label: I would like to build this one myself

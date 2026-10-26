@@ -288,6 +288,9 @@ button.card-add:active { transform: scale(0.92); }
 .card-add[aria-disabled="true"] { opacity: 0.5; }
 .card-blurb { margin: 0; font-size: 12px; line-height: 1.35; color: var(--dim); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card.is-installed .card-blurb { color: var(--silk); }
+.card-author { margin: 2px 0 0; font-size: 11px; line-height: 1.3; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-author a { color: var(--silk); text-decoration: none; }
+.card-author a:hover { color: #fff; text-decoration: underline; }
 .market-own { display: flex; flex-direction: column; gap: 8px; padding-top: 14px; border-top: 1px solid var(--etch); }
 .market-own code { font: 400 11.5px var(--font-mono); color: var(--silk); }
 .market-own a.btn { text-decoration: none; text-align: center; color: inherit; }

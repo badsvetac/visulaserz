@@ -10,3 +10,5 @@ dist/
 # Private: the hosted server's deploy notes, and local tool permissions that name the server.
 deploy/
 .claude/settings.local.json
+# Private working notes: launch posts and issue drafts before they go out.
+private/
