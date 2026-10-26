@@ -1,6 +1,12 @@
 node_modules/
 .venv/
 cache/
+data/
 *.log
 .DS_Store
 Thumbs.db
+dist/
+.build-cache/
+# Private: the hosted server's deploy notes, and local tool permissions that name the server.
+deploy/
+.claude/settings.local.json

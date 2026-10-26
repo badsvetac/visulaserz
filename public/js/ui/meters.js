@@ -56,6 +56,7 @@ export function buildMeters({ engine }) {
       }
       for (let i = 0; i < n; i++) out[i] = Math.pow(out[i] / max, 0.7);
       peaks = out;
+      drawn = '';
       seek.classList.add('has-wave');
       fit();
     } catch { /* an overview is a nicety; the plain bar still works */ }
@@ -86,15 +87,23 @@ export function buildMeters({ engine }) {
 
   engine.addEventListener('trackchange', (e) => build(e.detail));
   engine.addEventListener('live', () => { if (engine.live) { token++; peaks = null; seek.classList.remove('has-wave'); } });
-  new ResizeObserver(() => { if (peaks) { fit(); draw(); } }).observe(seek);
+  new ResizeObserver(() => { if (peaks) { fit(); drawn = ''; } }).observe(seek);
 
+  // The needles are hidden on narrow screens (style.css), and the overview only changes when the
+  // played part grows by a bar: neither is worth redrawing every frame, least of all on a phone.
+  const vuHidden = matchMedia('(max-width: 980px)');
+  let drawn = '';
   return {
     tick(dt, an) {
-      needles[0].setAttribute('transform', `rotate(${angle(an.rmsL).toFixed(1)} 30 34)`);
-      needles[1].setAttribute('transform', `rotate(${angle(an.rmsR).toFixed(1)} 30 34)`);
-      if (peaks) {
+      if (!vuHidden.matches) {
+        needles[0].setAttribute('transform', `rotate(${angle(an.rmsL).toFixed(1)} 30 34)`);
+        needles[1].setAttribute('transform', `rotate(${angle(an.rmsR).toFixed(1)} 30 34)`);
+      }
+      if (peaks && canvas.width >= 8 * (window.devicePixelRatio || 1)) {
         if (frames++ % 30 === 0) beam = getComputedStyle(document.documentElement).getPropertyValue('--beam').trim() || beam;
-        draw();
+        const at = engine.duration ? Math.floor((engine.currentTime / engine.duration) * peaks.length) : 0;
+        const key = `${at}|${beam}|${engine.ab ? `${engine.ab.a}-${engine.ab.b}` : ''}|${canvas.width}`;
+        if (key !== drawn) { drawn = key; draw(); }
       }
     },
     abText() {

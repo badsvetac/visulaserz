@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="on" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff4fd8" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#ff4fd8" stop-opacity="0.35"/>
+    </linearGradient>
+  </defs>
+  <path d="M20 58 h18 v-26 h14 v26 h4 v-26 h14 v26 h4 v-26 h14 v26 h22 v-26 h14 v26 h4 v-26 h14 v26 h22 v-26 h14 v26 h4 v-26 h14 v26 h22 v-26 h14 v26 h12" fill="none" stroke="#ff4fd8" stroke-width="1.6" stroke-opacity="0.7"/>
+  <g stroke="#fff" stroke-opacity="0.18" fill="#16161d">
+    <rect x="20" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#ff4fd8" stroke-opacity="0.8"/>
+    <rect x="37" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#ff4fd8" stroke-opacity="0.8"/>
+    <rect x="54" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#ff4fd8" stroke-opacity="0.8"/>
+    <rect x="71" y="82" width="14" height="56" rx="3"/>
+    <rect x="88" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#ff4fd8" stroke-opacity="0.8"/>
+    <rect x="105" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#ff4fd8" stroke-opacity="0.8"/>
+    <rect x="122" y="82" width="14" height="56" rx="3"/>
+    <rect x="139" y="82" width="14" height="56" rx="3"/>
+    <rect x="156" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#fff" stroke-opacity="1"/>
+    <rect x="173" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#ff4fd8" stroke-opacity="0.8"/>
+    <rect x="190" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#ff4fd8" stroke-opacity="0.8"/>
+    <rect x="207" y="82" width="14" height="56" rx="3"/>
+    <rect x="224" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#ff4fd8" stroke-opacity="0.8"/>
+    <rect x="241" y="82" width="14" height="56" rx="3"/>
+    <rect x="258" y="82" width="14" height="56" rx="3" fill="url(#on)" stroke="#ff4fd8" stroke-opacity="0.8"/>
+    <rect x="275" y="82" width="14" height="56" rx="3"/>
+  </g>
+  <rect x="153" y="79" width="20" height="62" rx="5" fill="none" stroke="#ff4fd8" stroke-opacity="0.6"/>
+  <g font-family="Michroma, sans-serif" font-size="5.5" letter-spacing="1" fill="#8a8791">
+    <text x="20" y="156">1</text><text x="88" y="156">2</text><text x="156" y="156" fill="#fff">3</text><text x="224" y="156">4</text>
+  </g>
+</svg>

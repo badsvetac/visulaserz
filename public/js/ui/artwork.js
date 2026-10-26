@@ -72,13 +72,30 @@ export function attachArtwork({ engine, renderer }) {
     loadArt(null);
     renderText(engine.liveLabel || 'Live input', 'listening');
   });
+  // in DJ mode the title and the art follow the deck on air, and go back to the player after
+  engine.addEventListener('djtrack', (e) => {
+    loadArt(e.detail);
+    renderText(e.detail.title, e.detail.artist || '');
+  });
+  engine.addEventListener('decks', () => {
+    if (engine.decks) return;
+    loadArt(engine.track);
+    if (engine.track) renderText(engine.track.title, engine.track.artist || '');
+    else renderText('VISULASERZ', 'drop a track · paste a link · play the demo');
+  });
   renderText('VISULASERZ', 'drop a track · paste a link · play the demo');
 
   return {
     tick(dt) {
-      const spin = renderer.extra.uSpin + dt * engine.effectiveRate * (RPM / 60) * Math.PI * 2;
+      const dj = engine.decks?.onAirInfo();                       // DJ mode: the deck on air
+      const rate = dj ? dj.rate : engine.effectiveRate;
+      const at = dj ? dj.position : engine.currentTime;
+      const length = dj ? dj.duration : engine.duration;
+      const spin = renderer.extra.uSpin + dt * rate * (RPM / 60) * Math.PI * 2;
       renderer.extra.uSpin = spin % (Math.PI * 2);
-      renderer.extra.uProgress = engine.duration ? engine.currentTime / engine.duration : 0;
+      renderer.extra.uProgress = length ? at / length : 0;
+      renderer.extra.uElapsed = length ? at : 0;
+      renderer.extra.uDuration = length || 0;
     },
   };
 }

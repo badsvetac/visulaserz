@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a35"/><stop offset="1" stop-color="#14141b"/></linearGradient>
+  </defs>
+  <rect x="58" y="18" width="204" height="112" rx="9" fill="url(#shell)" stroke="#fff" stroke-opacity="0.22"/>
+  <rect x="72" y="28" width="176" height="20" rx="3" fill="#ff4fd8" fill-opacity="0.18" stroke="#ff4fd8" stroke-opacity="0.55"/>
+  <text x="80" y="41" font-family="Michroma, sans-serif" font-size="6.5" letter-spacing="1.4" fill="#fff">SIDE A · C60</text>
+  <rect x="96" y="58" width="128" height="42" rx="21" fill="#0a0a0f" stroke="#fff" stroke-opacity="0.15"/>
+  <circle cx="124" cy="79" r="19" fill="#3a2a38"/>
+  <circle cx="196" cy="79" r="12" fill="#3a2a38"/>
+  <g fill="#0a0a0f" stroke="#d3d0c7" stroke-opacity="0.7" stroke-width="1.4"><circle cx="124" cy="79" r="8.5"/><circle cx="196" cy="79" r="8.5"/></g>
+  <g stroke="#d3d0c7" stroke-opacity="0.7" stroke-width="1.4"><path d="M124 73v-3M124 85v3M118 79h-3M130 79h3"/><path d="M196 73v-3M196 85v3M190 79h-3M202 79h3"/></g>
+  <path d="M100 120 L112 108 H208 L220 120 Z" fill="#0a0a0f" stroke="#fff" stroke-opacity="0.15"/>
+  <path d="M40 150 L44 149.9 L48 148.4 L52 147.2 L56 146.4 L60 146.4 L64 147.1 L68 147.9 L72 148.8 L76 149.3 L80 149.6 L84 150.0 L88 150.6 L92 151.6 L96 152.7 L100 153.5 L104 153.8 L108 153.3 L112 152.2 L116 150.9 L120 149.8 L124 149.1 L128 148.7 L132 148.5 L136 148.2 L140 147.7 L144 147.0 L148 146.7 L152 146.9 L156 147.8 L160 149.2 L164 150.7 L168 151.8 L172 152.4 L176 152.5 L180 152.3 L184 152.2 L188 152.2 L192 152.4 L196 152.3 L200 151.8 L204 150.6 L208 149.2 L212 147.8 L216 146.8 L220 146.6 L224 147.0 L228 147.6 L232 148.3 L236 148.7 L240 148.9 L244 149.2 L248 149.9 L252 150.9 L256 152.2 L260 153.3 L264 153.8 L268 153.5 L272 152.7 L276 151.5 L280 150.5" fill="none" stroke="#ff4fd8" stroke-width="2" stroke-linecap="round"/>
+  <g font-family="Saira, Arial, sans-serif" font-weight="600" font-size="7.5" letter-spacing="0.8" text-anchor="middle">
+    <text x="64" y="172" fill="#fff">CASSETTE</text><text x="128" y="172" fill="#8a8791">VINYL</text><text x="192" y="172" fill="#8a8791">RADIO</text><text x="256" y="172" fill="#8a8791">WORN TAPE</text>
+  </g>
+</svg>

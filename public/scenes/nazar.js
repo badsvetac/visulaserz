@@ -1,82 +1,60 @@
-// NAZAR — evil-eye beads hanging in a window.
-//
-// Eleven glass beads on cords of different lengths, one band each: a bead swings with its band and
-// the light inside the glass grows with it. They are lit from behind, so each throws a soft ring
-// of its own blue, and the bokeh of the street outside drifts on the travel clock. A beat sets the
-// whole row swaying together for a moment.
-const frag = `
-vec4 bead(vec2 p, vec2 c, float r, float glow) {
-  vec2 v = p - c;
-  float d = length(v);
-  if (d > r * 1.05) return vec4(0.0);
-  float u = d / r;
-  // cobalt, white, pale blue, and the dark pupil, poured one inside the other and never quite centred
-  vec2 off = v - vec2(0.06, -0.05) * r;
-  float uo = length(off) / r;
-  vec3 col = vec3(0.02, 0.10, 0.55);
-  col = mix(col, vec3(0.93, 0.95, 0.98), 1.0 - ss(0.60, 0.63, uo));
-  col = mix(col, vec3(0.30, 0.66, 0.92), 1.0 - ss(0.40, 0.43, uo));
-  col = mix(col, vec3(0.02, 0.02, 0.05), 1.0 - ss(0.19, 0.22, uo));
-  // glass: light through the body, a rim, and the window reflected in it
-  col *= 0.45 + 0.75 * glow + 0.35 * (1.0 - u * u);
-  col += vec3(0.35, 0.55, 1.0) * pow(u, 6.0) * 0.35;
-  vec2 hv = (v / r - vec2(-0.38, 0.40)) * vec2(3.2, 5.0);
-  col += vec3(1.0) * exp(-dot(hv, hv)) * 0.55;
-  return vec4(col, 1.0 - ss(0.97, 1.03, u));
+import { sculpted } from '../js/gfx/scene-kit.js';
+
+const frag = sculpted({
+  globals: `
+vec3 beadSpace(vec3 p, float i) {
+  float side = i - 1.0, scale = i == 1.0 ? 1.0 : 0.47;
+  p -= vec3(side * 1.65, i == 1.0 ? 0.85 : 1.12, i == 1.0 ? 0.0 : -0.45);
+  p.xy *= rot(sin(uCruise * 0.65 + i * 1.7) * (0.025 + gBass * 0.11) + gHit * side * 0.11);
+  p.xz *= rot(sin(uCruise * 0.22 + i) * (0.2 + gMid * 0.18) + uBalance * uAudioActive * 0.14);
+  return p / (scale * (1.0 + gBass * 0.055));
 }
-
-void main() {
-  vec2 p = centered();
-  float aspect = uRes.x / uRes.y;
-  float t = uTime;
-
-  // the street outside, out of focus
-  vec3 col = mix(vec3(0.030, 0.035, 0.070), vec3(0.008, 0.010, 0.025), ss(-0.8, 0.9, p.y)) + pal(0.6) * 0.02;
-  for (int i = 0; i < 16; i++) {
-    float fi = float(i);
-    vec2 bc = vec2(mod(hash11(fi * 3.1 + 1.0) + uTravel * 0.002 * (0.5 + hash11(fi * 1.3)), 1.0) * aspect * 2.4 - aspect * 1.2, (hash11(fi * 5.7 + 2.0) - 0.5) * 1.6);
-    float br = 0.07 + 0.10 * hash11(fi * 7.9);
-    float d = length(p - bc);
-    float disc = (1.0 - ss(br * 0.92, br, d)) * (0.75 + 0.25 * ss(br * 0.6, br, d));
-    col += mix(vec3(1.0, 0.75, 0.45), pal(hash11(fi * 9.1)), 0.55) * disc * 0.09 * (0.4 + 1.6 * spec(hash11(fi * 2.2) * 0.8));
-  }
-
-  float sway = exp(-uBeatAge * 1.4) * sin(uBeatAge * 7.0) * 0.10 * uPunch;
-  for (int i = 0; i < 11; i++) {
-    float fi = float(i);
-    float band = spec(0.03 + fi / 10.0 * 0.78);
-    float x0 = (fi / 10.0 - 0.5) * aspect * 1.75;
-    float len = 0.45 + 0.75 * hash11(fi * 4.3 + 1.0);
-    float ang = 0.10 * sin(t * (1.1 + 0.3 * hash11(fi)) + fi * 2.0) * (0.3 + 1.6 * band) + sway;
-    vec2 top = vec2(x0, 1.05);
-    vec2 c = top + len * vec2(sin(ang), -cos(ang));
-    float r = 0.095 + 0.055 * hash11(fi * 6.1 + 3.0);
-    // the cord
-    vec2 pa = p - top, ba = c - top;
-    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-    col = mix(col, vec3(0.05, 0.10, 0.30), 1.0 - ss(0.0015, 0.0035, length(pa - ba * h)));
-    // the ring of coloured light it throws
-    vec2 gv = p - c;
-    col += vec3(0.10, 0.30, 1.0) * (0.004 / (dot(gv, gv) + 0.02)) * (0.10 + 1.0 * band);
-    vec4 b = bead(p, c, r, band);
-    col = mix(col, b.rgb, b.a);
-    // a small gold bead above it
-    vec2 kv = p - (c + normalize(top - c) * (r + 0.018));
-    col = mix(col, vec3(0.95, 0.75, 0.30) * (0.6 + 0.6 * ss(0.014, 0.0, length(kv - vec2(-0.004, 0.004)))), 1.0 - ss(0.011, 0.014, length(kv)));
-  }
-  outColor = vec4(col, 1.0);
-}`;
-
+`,
+  map: `
+vec2 d = vec2(p.y + 0.3, 0.0);
+for (int i = 0; i < 3; i++) {
+  float fi = float(i), scale = i == 1 ? 1.0 : 0.47;
+  vec3 q = beadSpace(p, fi);
+  d = nearer(d, vec2(ellipsoid(q, vec3(0.94, 1.0, 0.30)) * scale, 1.0 + fi));
+  float gold = torus((q - vec3(0, 1.07, 0)).xzy, vec2(0.12, 0.028));
+  gold = min(gold, torus(q.xzy, vec2(0.963, 0.013)));
+  gold = min(gold, capsule(q, vec3(0, 1.17, 0), vec3(0, 5.0, 0), 0.008));
+  d = nearer(d, vec2(gold * scale, 4.0));
+}
+return d;
+`,
+  material: `
+if (id < 0.5) return vec4(vec3(0.018, 0.025, 0.045) + vec3(0.012, 0.034, 0.085) * exp(-dot(p.xz, p.xz) * 0.4), 0.3);
+if (id > 3.5) return vec4(0.85, 0.58, 0.22, 0.22);
+vec3 q = beadSpace(p, id - 1.0);
+vec2 eye = q.xy - vec2(-0.028, 0.025);
+float r = length(eye * vec2(1.02, 1.0));
+r += 0.006 * sin(atan(eye.y, eye.x) * 13.0) + 0.006 * noise(eye * 30.0);
+vec3 c = vec3(0.013, 0.063, 0.42);
+c = mix(c, vec3(0.82, 0.87, 0.90), ss(0.712, 0.692, r));
+c = mix(c, vec3(0.08, 0.46, 0.78), ss(0.5, 0.48, r));
+c = mix(c, vec3(0.003, 0.008, 0.028), ss(0.232 + gBass * 0.055, 0.222 + gBass * 0.055, r));
+c *= 0.79 + 0.3 * ss(-0.2, 0.2, q.z);
+c += vec3(0.025, 0.18, 0.40) * exp(-pow((r - 0.47) * 38.0, 2.0)) * (gMid * 0.5 + gHit * 0.8);
+return vec4(c, 0.105);
+`,
+  camera: `ro = vec3(sin(uCruise * 0.09) * 0.32, 1.35, 4.45); rd = viewRay(ro, vec3(0, 0.9, 0), uv, 2.1);`,
+  sky: `
+vec3 c = mix(vec3(0.012, 0.022, 0.053), vec3(0.075, 0.13, 0.21), ss(-0.4, 0.8, rd.y));
+return c + vec3(0.7, 0.85, 1.0) * pow(max(dot(rd, normalize(vec3(-0.8, 0.9, 0.8))), 0.0), 24.0) * 0.5;
+`,
+  metal: 'step(3.5, hit.y) * 0.85',
+  post: `
+if (hit.y > 0.5 && hit.y < 3.5) {
+  float fresnel = pow(1.0 - max(dot(n, -rd), 0.0), 2.0);
+  col += vec3(0.025, 0.17, 0.5) * fresnel * (0.4 + gHigh * 0.6);
+  vec3 reflection = reflect(rd, n);
+  col += vec3(0.55, 0.7, 0.9) * pow(max(dot(reflection, normalize(vec3(-0.8, 0.9, 0.8))), 0.0), 40.0) * (0.5 + gHigh * 0.5);
+}
+`,
+});
 export default {
-  id: 'nazar',
-  name: 'Nazar',
-  group: 'Things',
-  blurb: 'Evil-eye beads in a window, one band each, swaying together on a beat',
-  tags: ['turkish', 'night', 'calm'],
-  energy: 0.3,
-  particles: 0,
-  trails: 0.25,
-  zoom: 1,
-  spin: 0,
-  frag,
+  id: 'nazar', name: 'Nazar', group: 'Things',
+  blurb: 'Sculpted cobalt glass, molten gold fittings and a bass-driven iris; treble catches the curved rim',
+  tags: ['3d', 'glass', 'turkish', 'bass'], energy: 0.4, particles: 0, trails: 0, zoom: 1, spin: 0, frag,
 };

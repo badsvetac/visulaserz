@@ -12,7 +12,7 @@ const SORTS = ['Shelf', 'A–Z', 'Match'];
 const SCENE_FILE = /\.(glsl|frag|fs)$/i;
 export const isSceneFile = (file) => SCENE_FILE.test(file.name);
 
-export function buildMarket({ registry, renderer, analysis, director, selectScene, toast, lcdShow, icon }) {
+export function buildMarket({ registry, renderer, analysis, director, selectScene, toast, lcdShow, icon, toolShelf }) {
   const root = $('#market');
   const grid = $('#market-grid');
   const filters = $('#market-filters');
@@ -20,10 +20,15 @@ export function buildMarket({ registry, renderer, analysis, director, selectScen
   const count = $('#market-count');
   const empty = $('#market-empty');
   const offline = $('#market-offline');
+  const own = root.querySelector('.market-own');
+  const tabs = [...root.querySelectorAll('.market-tab')];
 
   const prefs = store.get('market', {});
   let filter = 'all';
   let sort = SORTS.includes(prefs.sort) ? prefs.sort : 'Shelf';
+  // Two shelves in one drawer: scenes for the picture, tools for playing with the sound.
+  let aisle = toolShelf && prefs.shelf === 'tools' ? 'tools' : 'scenes';
+  const savePrefs = () => store.set('market', { sort, shelf: aisle });
   let query = '';
   let preview = null;                    // { id, returnTo } while a scene that is not on the strip is playing
   let shown = null;                      // the scene the cards were last painted for
@@ -184,12 +189,12 @@ export function buildMarket({ registry, renderer, analysis, director, selectScen
     return c.node;
   }
   const sortBtn = el('button', { class: 'chip chip-sort', type: 'button', title: 'Order: the shelf, the alphabet, or what suits the music playing now',
-    onclick: () => { sort = SORTS[(SORTS.indexOf(sort) + 1) % SORTS.length]; store.set('market', { sort }); paint(); } });
+    onclick: () => { sort = SORTS[(SORTS.indexOf(sort) + 1) % SORTS.length]; savePrefs(); paint(); } });
 
   const cards = new Map();
   function card(e) {
     const builtIn = e.id === BUILT_IN;
-    const key = `${e.name}|${e.group}|${e.blurb}|${e.thumb}`;
+    const key = `${e.name}|${e.group}|${e.blurb}|${e.thumb}|${e.requiresAccount}`;
     let c = cards.get(e.id);
     if (!c || c.key !== key) {
       const state = el('span', { class: 'card-state' });
@@ -198,7 +203,7 @@ export function buildMarket({ registry, renderer, analysis, director, selectScen
           ? el('img', { src: sceneUrl(e.thumb), alt: '', loading: 'lazy', decoding: 'async' })
           : el('span', { class: 'card-blank', style: `background:${paletteGradient(renderer.palette)}` }, e.name.slice(0, 2)),
         state,
-        el('span', { class: 'card-name' }, e.name, el('span', { class: 'card-group' }, e.group)),
+        el('span', { class: 'card-name' }, e.name, el('span', { class: 'card-group' }, `${e.group}${e.requiresAccount ? ' · Members' : ''}`)),
       );
       const idle = el('span', { class: 'when-idle' });
       const hover = el('span', { class: 'when-hover' });
@@ -236,9 +241,36 @@ export function buildMarket({ registry, renderer, analysis, director, selectScen
     if (focused?.isConnected) focused.focus({ preventScroll: true });
   }
 
+  function setShelf(next) {
+    if (!toolShelf || next === aisle) return;
+    aisle = next;
+    savePrefs();
+    if (aisle === 'tools') toolShelf.refresh();
+    const scroller = root.querySelector('.market-scroll');
+    if (scroller) scroller.scrollTop = 0;
+    paint();
+  }
+  tabs.forEach((tab) => tab.addEventListener('click', () => setShelf(tab.dataset.shelf)));
+  if (toolShelf) toolShelf.onChange = () => paint();
+  else tabs.forEach((tab) => { tab.hidden = true; });
+
   function paint() {
     if (!isOpen()) { dirty = true; return; }
     dirty = false;
+    tabs.forEach((tab) => {
+      const on = tab.dataset.shelf === aisle;
+      tab.classList.toggle('is-active', on);
+      tab.setAttribute('aria-selected', String(on));
+    });
+    search.placeholder = aisle === 'tools' ? 'Search tools: pad, drums, scratch…' : 'Search scenes: space, rain, retro…';
+    search.setAttribute('aria-label', aisle === 'tools' ? 'Search tools' : 'Search scenes');
+    if (own) own.hidden = aisle === 'tools';
+    if (aisle === 'tools') {
+      offline.hidden = true;
+      toolShelf.paint({ filters, grid, count, empty, place, query });
+      return;
+    }
+    empty.textContent = 'No scene matches that.';
     shown = renderer.sceneId;
     const shelf = registry.shelf;
     const groups = [...new Set(shelf.map((e) => e.group))];
@@ -259,7 +291,8 @@ export function buildMarket({ registry, renderer, analysis, director, selectScen
     document.body.classList.toggle('has-market', v);
     if (v) {
       if (dirty || shown !== renderer.sceneId) paint();
-      if (matchMedia('(min-width: 900px)').matches) search.focus({ preventScroll: true });
+      // a touch tablet is wide too, but there the caret would pop up its keyboard over the shelf
+      if (matchMedia('(min-width: 900px) and (hover: hover) and (pointer: fine)').matches) search.focus({ preventScroll: true });
     } else {
       endPreview();
       if (root.contains(document.activeElement)) document.activeElement.blur();
@@ -281,6 +314,9 @@ export function buildMarket({ registry, renderer, analysis, director, selectScen
   return {
     open,
     toggle: () => open(!isOpen()),
+    // open the drawer on one shelf, 'scenes' or 'tools'
+    openShelf(which) { setShelf(which); if (!isOpen()) open(true); else paint(); },
+    get shelf() { return aisle; },
     get isOpen() { return isOpen(); },
     // What to remember as "the current scene" while a trial is on: the one it will go back to.
     get settledScene() { return preview && !registry.isInstalled(renderer.sceneId) ? preview.returnTo : renderer.sceneId; },

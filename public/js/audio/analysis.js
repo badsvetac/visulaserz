@@ -14,6 +14,7 @@ export class AudioAnalysis {
     this.engine = engine;
     this.sensitivity = 1;
     this.motion = 1;
+    this.active = false;
 
     const n = SPECTRUM_BINS;
     this.spectrum = new Float32Array(n); // fast attack, medium release
@@ -81,6 +82,7 @@ export class AudioAnalysis {
   update(dt) {
     this.time += dt;
     const playing = this.engine.playing && this.ranges;
+    this.active = !!playing;
     this.isBeat = false;
     if (playing) this.#analyse(dt);
     else this.#idle(dt);

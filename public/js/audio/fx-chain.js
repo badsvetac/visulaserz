@@ -7,7 +7,8 @@
 //         │             └→ convolver A/B (crossfaded) → wet ─┤
 //         └→ echo send → delay ⟲ feedback(+damping) → wet ──┤
 //                                                          └→ gate → orbit filter
-//                                                             → panner (LFO) → limiter → output
+//                                                             → panner (LFO) → track slots → music level
+//                                                             → (+ the tools' own sound) → tool slots → limiter → output
 //
 // Two layers of control, and keeping them apart matters:
 //   apply(fx)  — the knobs. Persisted, restored, and used by the offline export.
@@ -200,6 +201,44 @@ export function createFxChain(ctx) {
   const output = ctx.createGain();
   output.gain.value = 0.7; // cancels the compressor's automatic make-up gain
 
+  // ── tool slots ────────────────────────────────────────────────────────────
+  // The market's tools (public/tools) play here: after the rack and before the limiter, so a
+  // touch effect bends the whole mix, echo tails and all, and whatever a tool plays itself joins
+  // the music the picture listens to. Each slot is a plain wire until a tool takes it, and the
+  // hand-over is a crossfade with matching time constants (pass + wet stays exactly 1), so
+  // opening a tool in the middle of a song never clicks. The offline export builds the same row
+  // and leaves it empty: no tool ever reaches the WAV.
+  //
+  // A few more slots sit on the track alone, before the tools' own sound joins it: an effect that
+  // should change the song but not what you play over it (taking the vocals out, freezing it)
+  // goes there, so your drum pads and your microphone are left alone.
+  const TOOL_SLOTS = 8;
+  const MUSIC_SLOTS = 3;
+  const toolIn = ctx.createGain();
+  const musicIn = ctx.createGain();
+  // The music on its way in, on its own gain: a tool can take the track out from under what the
+  // tools are playing (Chop's "mute track", the looper playing alone) without silencing them too.
+  const musicLevel = ctx.createGain();
+  const row = (head, n) => {
+    const list = [];
+    let tail = head;
+    for (let i = 0; i < n; i++) {
+      const pass = ctx.createGain();
+      const wet = ctx.createGain();
+      const out = ctx.createGain();
+      wet.gain.value = 0;
+      tail.connect(pass).connect(out);
+      wet.connect(out);
+      list.push({ from: tail, pass, wet, fx: null });
+      tail = out;
+    }
+    return { list, tail };
+  };
+  const toolRow = row(toolIn, TOOL_SLOTS);
+  const musicRow = row(musicIn, MUSIC_SLOTS);
+  toolRow.tail.connect(limiter);
+  musicRow.tail.connect(musicLevel);
+
   input.connect(bass).connect(treble).connect(muffle).connect(shaper).connect(driveTrim);
   driveTrim.connect(djHP).connect(djLP).connect(post);
   iso.connect(mainGate);
@@ -212,7 +251,8 @@ export function createFxChain(ctx) {
   iso.connect(echoSend).connect(delay);
   delay.connect(echoDamp).connect(feedback).connect(delay);
   delay.connect(echoWet).connect(bus);
-  bus.connect(gate).connect(orbitFilter).connect(panner).connect(limiter);
+  bus.connect(gate).connect(orbitFilter).connect(panner).connect(musicIn);
+  musicLevel.connect(toolIn);
   crackleGain.connect(limiter);
   limiter.connect(output);
 
@@ -362,6 +402,37 @@ export function createFxChain(ctx) {
     setAudible(on) {
       audible = on;
       setP(crackleGain.gain, on ? crackleLevel : 0, 0.15);
+    },
+
+    // ── the tool slots ───────────────────────────────────────────────────────
+    // What a tool plays (a drum hit, a riser) goes into toolInput and through every slot after it.
+    toolInput: toolIn,
+    // The track's own level as it joins the tools (an AudioParam; 1 = all of it).
+    musicLevel: musicLevel.gain,
+    // Lends the first free slot to a tool's effect, { input, output }, which must be transparent
+    // at that moment (its own dry path open): one on the whole mix, or with { music: true } one on
+    // the track alone. Returns the function that gives the slot back, or null when all of them
+    // are taken.
+    claimSlot(fx, { music = false } = {}) {
+      const slot = (music ? musicRow : toolRow).list.find((s) => !s.fx);
+      if (!slot || !live) return null;
+      slot.fx = fx;
+      slot.from.connect(fx.input);
+      fx.output.connect(slot.wet);
+      const now = ctx.currentTime;
+      slot.pass.gain.setTargetAtTime(0, now, 0.005);
+      slot.wet.gain.setTargetAtTime(1, now, 0.005);
+      return () => {
+        if (slot.fx !== fx) return;
+        const t = ctx.currentTime;
+        slot.pass.gain.setTargetAtTime(1, t, 0.005);
+        slot.wet.gain.setTargetAtTime(0, t, 0.005);
+        setTimeout(() => {
+          try { slot.from.disconnect(fx.input); } catch { /* already gone */ }
+          try { fx.output.disconnect(slot.wet); } catch { /* already gone */ }
+          slot.fx = null;
+        }, 80);
+      };
     },
   };
 }

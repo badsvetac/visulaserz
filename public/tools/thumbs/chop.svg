@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="pad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2a35"/>
+      <stop offset="1" stop-color="#16161d"/>
+    </linearGradient>
+  </defs>
+  <rect x="20" y="16" width="280" height="56" rx="6" fill="#0c0c12" stroke="#fff" stroke-opacity="0.18"/>
+  <rect x="125" y="16" width="35" height="56" fill="#ff4fd8" fill-opacity="0.18"/>
+  <g fill="#ff4fd8" fill-opacity="0.85">
+    <rect x="24" y="30" width="3" height="28"/><rect x="29" y="38" width="3" height="12"/><rect x="34" y="24" width="3" height="40"/><rect x="39" y="34" width="3" height="20"/>
+    <rect x="44" y="40" width="3" height="8"/><rect x="49" y="28" width="3" height="32"/><rect x="54" y="36" width="3" height="16"/><rect x="59" y="26" width="3" height="36"/>
+    <rect x="64" y="38" width="3" height="12"/><rect x="69" y="32" width="3" height="24"/><rect x="74" y="24" width="3" height="40"/><rect x="79" y="40" width="3" height="8"/>
+    <rect x="84" y="30" width="3" height="28"/><rect x="89" y="36" width="3" height="16"/><rect x="94" y="22" width="3" height="44"/><rect x="99" y="34" width="3" height="20"/>
+    <rect x="104" y="40" width="3" height="8"/><rect x="109" y="28" width="3" height="32"/><rect x="114" y="36" width="3" height="16"/><rect x="119" y="30" width="3" height="28"/>
+    <rect x="129" y="22" width="3" height="44" fill="#fff"/><rect x="134" y="32" width="3" height="24" fill="#fff"/><rect x="139" y="26" width="3" height="36" fill="#fff"/><rect x="144" y="38" width="3" height="12" fill="#fff"/>
+    <rect x="149" y="30" width="3" height="28" fill="#fff"/><rect x="154" y="36" width="3" height="16" fill="#fff"/>
+    <rect x="164" y="26" width="3" height="36"/><rect x="169" y="38" width="3" height="12"/><rect x="174" y="30" width="3" height="28"/><rect x="179" y="24" width="3" height="40"/>
+    <rect x="184" y="36" width="3" height="16"/><rect x="189" y="40" width="3" height="8"/><rect x="194" y="28" width="3" height="32"/><rect x="199" y="34" width="3" height="20"/>
+    <rect x="204" y="22" width="3" height="44"/><rect x="209" y="38" width="3" height="12"/><rect x="214" y="30" width="3" height="28"/><rect x="219" y="36" width="3" height="16"/>
+    <rect x="224" y="26" width="3" height="36"/><rect x="229" y="40" width="3" height="8"/><rect x="234" y="32" width="3" height="24"/><rect x="239" y="28" width="3" height="32"/>
+    <rect x="244" y="38" width="3" height="12"/><rect x="249" y="24" width="3" height="40"/><rect x="254" y="34" width="3" height="20"/><rect x="259" y="30" width="3" height="28"/>
+    <rect x="264" y="40" width="3" height="8"/><rect x="269" y="26" width="3" height="36"/><rect x="274" y="36" width="3" height="16"/><rect x="279" y="30" width="3" height="28"/>
+    <rect x="284" y="38" width="3" height="12"/><rect x="289" y="32" width="3" height="24"/><rect x="294" y="28" width="3" height="32"/>
+  </g>
+  <g stroke="#fff" stroke-opacity="0.15"><path d="M55 16v56M90 16v56M125 16v56M160 16v56M195 16v56M230 16v56M265 16v56"/></g>
+  <g font-family="monospace" font-size="12" text-anchor="middle" fill="#d3d0c7">
+    <g stroke="#fff" stroke-opacity="0.18">
+      <rect x="20" y="86" width="64" height="38" rx="5" fill="url(#pad)"/><rect x="92" y="86" width="64" height="38" rx="5" fill="url(#pad)"/>
+      <rect x="164" y="86" width="64" height="38" rx="5" fill="url(#pad)"/><rect x="236" y="86" width="64" height="38" rx="5" fill="#ff4fd8" fill-opacity="0.3" stroke="#ff4fd8" stroke-opacity="1"/>
+      <rect x="20" y="130" width="64" height="38" rx="5" fill="url(#pad)"/><rect x="92" y="130" width="64" height="38" rx="5" fill="url(#pad)"/>
+      <rect x="164" y="130" width="64" height="38" rx="5" fill="url(#pad)"/><rect x="236" y="130" width="64" height="38" rx="5" fill="url(#pad)"/>
+    </g>
+    <text x="52" y="110">1</text><text x="124" y="110">2</text><text x="196" y="110">3</text><text x="268" y="110" fill="#fff">4</text>
+    <text x="52" y="154">5</text><text x="124" y="154">6</text><text x="196" y="154">7</text><text x="268" y="154">8</text>
+  </g>
+</svg>

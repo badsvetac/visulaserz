@@ -8,7 +8,7 @@ import { buildXYPad } from './xy-pad.js';
 // The PERFORM unit: the moves a DJ makes with their hands while the track runs. Everything
 // here is an override that lives inside the FX chain, so none of it is saved with the rack,
 // none of it reaches the exported WAV, and turning a knob mid-gesture cannot cancel it.
-export function buildPerform({ engine, toast, lcdShow, onFxChange }) {
+export function buildPerform({ engine, toast, lcdShow, onFxChange, onPanic }) {
   const unit = document.getElementById('unit-perform');
   if (!unit) return { keydown: () => false, keyup: () => {}, tick: () => {} };
   const pads = [];
@@ -78,6 +78,7 @@ export function buildPerform({ engine, toast, lcdShow, onFxChange }) {
     pads.forEach((p) => p.reset());
     engine.clearPerformance();
     if (gate.isOn) setGate(0);
+    onPanic?.();                                                     // the tools on the stage let go too
     lcdShow('perform', 'CLEAR');
   }
 
@@ -102,7 +103,7 @@ export function buildPerform({ engine, toast, lcdShow, onFxChange }) {
     },
     keyup(e) { byKey(e)?.release(); },
     tick(dt, an) {
-      engine.setTempo(an.bpm);
+      engine.setTempo(engine.decks?.onAir?.liveBpm || an.bpm);
       xy.tick(dt);
       gate.tick();
     },

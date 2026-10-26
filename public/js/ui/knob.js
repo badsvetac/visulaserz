@@ -3,6 +3,10 @@ import { clamp, el } from '../util.js';
 // 270° arc from 7:30 to 4:30 around (32,32), radius 25.
 const ARC = 'M 14.32 49.68 A 25 25 0 1 1 49.68 49.68';
 
+// Every knob on the page, by its element: a MIDI controller that has learnt one finds it here.
+const byElement = new WeakMap();
+export const knobOf = (node) => byElement.get(node);
+
 // A rotary control. Drag up/down, scroll, or use the arrow keys; double-click resets.
 export class Knob {
   constructor({ id, label, min, max, def, value = def, curve = 1, origin, fmt = (v) => v.toFixed(2), onChange, onTouch }) {
@@ -27,6 +31,7 @@ export class Knob {
       class: 'knob', role: 'slider', tabindex: '0', 'aria-label': label,
       'aria-valuemin': '0', 'aria-valuemax': '100', title: 'Drag, scroll or use arrow keys. Double-click to reset.',
     }, svg, el('span', { class: 'knob-label' }, label), this.valueEl);
+    byElement.set(this.el, this);
 
     this.#bind();
     this.render();
@@ -85,6 +90,7 @@ export class Knob {
     const stop = () => { dragging = false; node.classList.remove('is-active'); };
     node.addEventListener('pointerup', stop);
     node.addEventListener('pointercancel', stop);
+    node.addEventListener('lostpointercapture', stop);                 // a phone can take the finger away (a call, a gesture)
     node.addEventListener('wheel', (e) => {
       e.preventDefault();
       this.#nudge((e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 0.004 : 0.025));

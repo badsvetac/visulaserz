@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="pad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2a35"/>
+      <stop offset="1" stop-color="#16161d"/>
+    </linearGradient>
+    <radialGradient id="hit" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#ff4fd8" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#ff4fd8" stop-opacity="0.22"/>
+    </radialGradient>
+    <linearGradient id="lit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd1f4"/>
+      <stop offset="1" stop-color="#ff4fd8"/>
+    </linearGradient>
+  </defs>
+  <text x="20" y="18" font-family="Michroma, sans-serif" font-size="5.5" letter-spacing="1" fill="#d3d0c7" fill-opacity="0.5">VI · F MAJOR</text>
+  <text x="300" y="18" text-anchor="end" font-family="Michroma, sans-serif" font-size="6" letter-spacing="1" fill="#ff4fd8">A MINOR</text>
+  <g stroke="#fff" stroke-opacity="0.18">
+    <rect x="20" y="26" width="36" height="58" rx="5" fill="url(#pad)" stroke="#ff4fd8" stroke-opacity="0.5"/>
+    <rect x="60.5" y="26" width="36" height="58" rx="5" fill="url(#pad)"/>
+    <rect x="101" y="26" width="36" height="58" rx="5" fill="url(#pad)"/>
+    <rect x="141.5" y="26" width="36" height="58" rx="5" fill="url(#pad)"/>
+    <rect x="182" y="26" width="36" height="58" rx="5" fill="url(#pad)"/>
+    <rect x="222.5" y="28" width="36" height="58" rx="5" fill="url(#hit)" stroke="#ff4fd8" stroke-opacity="1"/>
+    <rect x="263" y="26" width="36" height="58" rx="5" fill="url(#pad)"/>
+  </g>
+  <g text-anchor="middle">
+    <g font-family="Michroma, sans-serif" font-size="5" letter-spacing="0.8" fill="#8a8791">
+      <text x="38" y="42">i</text><text x="78.5" y="42">ii°</text><text x="119" y="42">III</text><text x="159.5" y="42">iv</text>
+      <text x="200" y="42">v</text><text x="240.5" y="44" fill="#ff4fd8">VI</text><text x="281" y="42">VII</text>
+    </g>
+    <g font-family="Saira, Arial, sans-serif" font-weight="600" font-size="12" fill="#ebe8e0">
+      <text x="38" y="60">Am</text><text x="78.5" y="60">B°</text><text x="119" y="60">C</text><text x="159.5" y="60">Dm</text>
+      <text x="200" y="60">Em</text><text x="240.5" y="62" fill="#fff">F</text><text x="281" y="60">G</text>
+    </g>
+    <g font-family="monospace" font-size="7" fill="#8a8791">
+      <text x="38" y="76">1</text><text x="78.5" y="76">2</text><text x="119" y="76">3</text><text x="159.5" y="76">4</text>
+      <text x="200" y="76">5</text><text x="240.5" y="78" fill="#fff">6</text><text x="281" y="76">7</text>
+    </g>
+  </g>
+  <path d="M240.5 88 C 240.5 96, 230 96, 228 100" fill="none" stroke="#ff4fd8" stroke-opacity="0.5" stroke-dasharray="2 2"/>
+  <rect x="19" y="101" width="282" height="50" rx="3" fill="#0c0c12" stroke="#fff" stroke-opacity="0.2"/>
+  <rect x="20.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/><rect x="40.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/><rect x="60.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/><rect x="80.5" y="102" width="19" height="48" rx="2" fill="#ff4fd8" fill-opacity="0.45"/><rect x="100.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/><rect x="120.5" y="102" width="19" height="48" rx="2" fill="url(#lit)"/><rect x="140.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/><rect x="160.5" y="102" width="19" height="48" rx="2" fill="url(#lit)"/><rect x="180.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/><rect x="200.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/><rect x="220.5" y="102" width="19" height="48" rx="2" fill="url(#lit)"/><rect x="240.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/><rect x="260.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/><rect x="280.5" y="102" width="19" height="48" rx="2" fill="#d9d6ce" fill-opacity="0.82"/>
+  <rect x="34" y="102" width="12" height="29" rx="1.5" fill="#101016"/><rect x="54" y="102" width="12" height="29" rx="1.5" fill="#101016"/><rect x="94" y="102" width="12" height="29" rx="1.5" fill="#101016"/><rect x="114" y="102" width="12" height="29" rx="1.5" fill="#101016"/><rect x="134" y="102" width="12" height="29" rx="1.5" fill="#101016"/><rect x="174" y="102" width="12" height="29" rx="1.5" fill="#101016"/><rect x="194" y="102" width="12" height="29" rx="1.5" fill="#101016"/><rect x="234" y="102" width="12" height="29" rx="1.5" fill="#101016"/><rect x="254" y="102" width="12" height="29" rx="1.5" fill="#101016"/><rect x="274" y="102" width="12" height="29" rx="1.5" fill="#101016"/>
+  <g font-family="monospace" font-size="7" text-anchor="middle" fill="#16161d">
+    <text x="90" y="145" fill="#fff">F</text><text x="130" y="145">A</text><text x="170" y="145">C</text><text x="230" y="145">F</text>
+  </g>
+  <g fill="#ff4fd8"><circle cx="130" cy="164" r="2.5"/><circle cx="150" cy="164" r="2.5" fill-opacity="0.6"/><circle cx="170" cy="164" r="2.5" fill-opacity="0.35"/><circle cx="190" cy="164" r="2.5" fill-opacity="0.18"/></g>
+</svg>

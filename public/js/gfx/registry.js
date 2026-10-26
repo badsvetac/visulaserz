@@ -7,7 +7,8 @@ import NOVA from '../../scenes/nova.js';
 // only imported when it is on the strip or being tried. Nova is built in, which is what lets the
 // renderer always have something to draw, whatever happens to the network or to storage.
 
-const SCENES_URL = new URL('../../scenes/', import.meta.url);
+const SCENES_URL = typeof __VZ_SCENES_URL__ === 'string'
+  ? new URL(__VZ_SCENES_URL__, location.href) : new URL('../../scenes/', import.meta.url);
 const FILE_RE = /^[a-z0-9-]+\.js$/;
 const THUMB_RE = /^thumbs\/[a-z0-9-]+\.webp$/;
 export const sceneUrl = (relative) => new URL(relative, SCENES_URL).href;
@@ -21,6 +22,18 @@ export const BUILT_IN = NOVA.id;
 export const CUSTOM_GROUP = 'Custom';
 
 const num = (v, lo, hi, def) => (v !== '' && v !== null && v !== undefined && Number.isFinite(Number(v)) ? clamp(Number(v), lo, hi) : def);
+const hasMain = (s) => typeof s === 'string' && s.length <= MAX_SOURCE && /\bvoid\s+main\s*\(/.test(s);
+
+// The optional extra shaders a market scene may bring (glsl.js, "scene extras"). Anything that is
+// not shaped right is dropped, and the scene still draws its picture.
+function extraPoints(p) {
+  if (!p || typeof p !== 'object' || !hasMain(p.vert)) return null;
+  return { count: Math.round(num(p.count, 1, 20000, 1000)), vert: p.vert, frag: hasMain(p.frag) ? p.frag : null, blend: p.blend === 'alpha' ? 'alpha' : 'add' };
+}
+function extraSim(s) {
+  if (!s || typeof s !== 'object' || !hasMain(s.frag)) return null;
+  return { frag: s.frag, height: Math.round(num(s.height, 64, 1024, 360)), steps: Math.round(num(s.steps, 1, 16, 1)) };
+}
 
 // Every scene passes through here, whether it came from /scenes, from storage or from a dropped
 // file, so the renderer and the knobs never meet a value outside the range they were built for.
@@ -40,6 +53,8 @@ export function normalise(raw) {
     ambience: raw.ambience === 'rain' ? 'rain' : undefined,
     custom: !!raw.custom,
     frag: raw.frag,
+    points: raw.custom ? null : extraPoints(raw.points),          // a dropped .glsl file is one shader and nothing more
+    sim: raw.custom ? null : extraSim(raw.sim),
   };
 }
 
@@ -114,7 +129,7 @@ export class SceneRegistry extends EventTarget {
     }
     wanted = [...new Set(wanted)].filter((id) => typeof id === 'string' && ID_RE.test(id) && id !== NOVA.id && !id.startsWith('custom-'));
     if (this.catalog.length) wanted = wanted.filter((id) => this.entry(id));   // a scene that left the market
-    const results = await Promise.allSettled(wanted.map((id) => this.load(id)));
+    const results = await Promise.allSettled(wanted.map((id) => this.load(id, { prompt: false })));
     const ok = wanted.filter((_, i) => results[i].status === 'fulfilled');
     this.#missing = wanted.filter((_, i) => results[i].status !== 'fulfilled');
     results.forEach((r, i) => r.status === 'rejected' && console.warn(`[scenes] ${wanted[i]}:`, r.reason?.message || r.reason));
@@ -150,7 +165,7 @@ export class SceneRegistry extends EventTarget {
   }
 
   // Fetch a scene's code without putting it on the strip (this is what "Try" does).
-  load(id) {
+  load(id, { prompt = true } = {}) {
     if (this.loaded.has(id)) return Promise.resolve(this.loaded.get(id));
     if (this.#loading.has(id)) return this.#loading.get(id);
     const entry = this.entry(id);
@@ -159,7 +174,17 @@ export class SceneRegistry extends EventTarget {
     // A module that failed to load stays failed under its URL for the life of the page, so a retry needs a new one.
     const n = this.#attempts.get(id) || 0;
     this.#attempts.set(id, n + 1);
-    const job = import(new URL(n ? `${file}?retry=${n}` : file, SCENES_URL).href)
+    const job = (async () => {
+      if (entry?.requiresAccount) {
+        const response = await fetch(`/api/market/access?id=${encodeURIComponent(id)}`, { cache: 'no-store' });
+        if (!response.ok) {
+          if (response.status === 401 && prompt) window.dispatchEvent(new Event('visulaserz:auth-required'));
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.error || 'This scene is currently unavailable.');
+        }
+      }
+      return import(new URL(n ? `${file}?retry=${n}` : file, SCENES_URL).href);
+    })()
       .then((m) => {
         const scene = normalise({ ...entry, ...m.default, custom: false });
         if (!scene || scene.id !== id) throw new Error(`${file} does not export the “${id}” scene.`);

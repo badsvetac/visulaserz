@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <radialGradient id="btn" cx="45%" cy="38%" r="65%"><stop offset="0" stop-color="#ffd1f4"/><stop offset="0.35" stop-color="#ff4fd8"/><stop offset="1" stop-color="#6d1a5e"/></radialGradient>
+  </defs>
+  <rect x="18" y="22" width="200" height="74" rx="7" fill="#0c0c12" stroke="#fff" stroke-opacity="0.2"/>
+  <path d="M26 86 L50.0 36 L74.0 86 L98.0 36 L122.0 86 L146.0 36 L170.0 86 L194.0 36 L218.0 86" fill="none" stroke="#ff4fd8" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M40 86 L64.0 52 L88.0 86 L112.0 52 L136.0 86 L160.0 52 L184.0 86" fill="none" stroke="#ff4fd8" stroke-opacity="0.35" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M54 86 L78.0 66 L102.0 86 L126.0 66 L150.0 86 L174.0 66 L198.0 86" fill="none" stroke="#ff4fd8" stroke-opacity="0.15" stroke-width="1.2" stroke-linejoin="round"/>
+  <text x="26" y="33" font-family="Michroma, sans-serif" font-size="6" letter-spacing="1" fill="#ff4fd8">WAIL · 1/4</text>
+  <circle cx="262" cy="104" r="40" fill="#16161d" stroke="#fff" stroke-opacity="0.2"/>
+  <circle cx="262" cy="104" r="31" fill="url(#btn)"/>
+  <circle cx="262" cy="104" r="46" fill="none" stroke="#ff4fd8" stroke-opacity="0.25"/>
+  <circle cx="262" cy="104" r="54" fill="none" stroke="#ff4fd8" stroke-opacity="0.1"/>
+  <text x="262" y="107" text-anchor="middle" font-family="Michroma, sans-serif" font-size="7" letter-spacing="1.8" fill="#fff">SIREN</text>
+  <g fill="none" stroke="#fff" stroke-opacity="0.3" stroke-width="1.6">
+    <circle cx="40" cy="124" r="11"/><circle cx="82" cy="124" r="11"/><circle cx="124" cy="124" r="11"/><circle cx="166" cy="124" r="11"/>
+  </g>
+  <g stroke="#ff4fd8" stroke-width="2.2" stroke-linecap="round">
+    <path d="M40 124 l-6 -7"/><path d="M82 124 l6 -7"/><path d="M124 124 l2 -9"/><path d="M166 124 l-8 3"/>
+  </g>
+</svg>

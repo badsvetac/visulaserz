@@ -41,6 +41,13 @@ export function el(tag, attrs = {}, ...children) {
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 
+// iPadOS asks for desktop pages and calls itself a Mac; only the touch points give it away.
+export const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+// A phone or tablet: a coarse pointer on a small screen, or a browser that says it is mobile.
+// Decides the defaults that keep a phone cool (frame cap, resolution), never what the page can do.
+export const isPhone = isIOS || !!navigator.userAgentData?.mobile || /Android|Mobi/i.test(navigator.userAgent)
+  || (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820);
+
 export function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = el('a', { href: url, download: filename });
@@ -56,7 +63,11 @@ export const store = {
   get(key, fallback) {
     try {
       const raw = localStorage.getItem(`visulaserz:${key}`);
-      return raw === null ? fallback : JSON.parse(raw);
+      if (raw === null) return fallback;
+      const value = JSON.parse(raw);
+      // a value of another shape than the caller expects (a stored null, an old format) is no value
+      if (fallback !== undefined && fallback !== null && (value === null || typeof value !== typeof fallback || Array.isArray(value) !== Array.isArray(fallback))) return fallback;
+      return value;
     } catch {
       return fallback;
     }

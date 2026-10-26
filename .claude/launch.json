@@ -24,6 +24,34 @@
         "scripts/make-thumbs.js"
       ],
       "port": 4779
+    },
+    {
+      "name": "visulaserz-audit",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "set PORT=4796&& node server.js"
+      ],
+      "port": 4796
+    },
+    {
+      "name": "visulaserz-lab",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/scene-lab.mjs",
+        "nova"
+      ],
+      "port": 4781
+    },
+    {
+      "name": "visulaserz-portable",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "set PORT=4791&& dist\\Visulaserz\\app\\bin\\node.exe dist\\Visulaserz\\app\\server.js"
+      ],
+      "port": 4791,
+      "url": "http://127.0.0.1:4791"
     }
   ]
 }

@@ -15,7 +15,8 @@
   --font-display: 'Michroma', 'Eurostile', 'Bank Gothic', sans-serif;
   --font-body: 'Saira Semi Condensed', 'Barlow Semi Condensed', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'Martian Mono', 'JetBrains Mono', 'Consolas', monospace;
-  --deck-h: 64px;
+  /* the deck's height includes the iPhone's home-bar strip, so the rack and the DJ console sit above it too */
+  --deck-h: calc(64px + env(safe-area-inset-bottom, 0px));
   --rack-bar-h: 38px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -23,6 +24,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
+html { touch-action: manipulation; }                 /* no double-tap zoom on the buttons; pinch still works */
 body {
   background: var(--ink);
   color: var(--silk);
@@ -39,7 +41,7 @@ input { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--beam); outline-offset: 2px; }
 ::selection { background: rgba(var(--beam-rgb), 0.35); }
 
-#stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 
 .legend {
   margin: 0;
@@ -56,7 +58,7 @@ body.is-cinema { cursor: none; }
 body.is-cinema .deck { transform: translateY(8px); }
 
 .marquee {
-  position: fixed; top: 18px; left: 22px; z-index: 5;
+  position: fixed; top: max(18px, env(safe-area-inset-top)); left: max(22px, env(safe-area-inset-left)); z-index: 5;
   display: flex; flex-direction: column; gap: 12px; max-width: min(46vw, 520px);
 }
 .plate {
@@ -79,14 +81,21 @@ body.is-cinema .deck { transform: translateY(8px); }
 .np-artist { font-size: 12.5px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8); }
 
 /* ── hero ───────────────────────────────────────────────────────────────── */
+/* It stays in the stage above the rack (ui.js measures where the rack starts into --stage-bottom),
+   so an open rack never covers its buttons. The auto margins centre it, and a hero taller than a
+   short landscape stage scrolls instead of losing its top. */
 .hero {
-  position: fixed; inset: 0; z-index: 4;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  padding: 24px; text-align: center;
+  position: fixed; top: 0; left: 0; right: 0; bottom: var(--stage-bottom, calc(var(--deck-h) + var(--rack-bar-h))); z-index: 4;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 18px;
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 24px max(24px, env(safe-area-inset-left)); text-align: center;
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
   pointer-events: none;
   transition: opacity 0.6s var(--ease);
 }
+.hero::-webkit-scrollbar { display: none; }
 .hero > * { pointer-events: auto; }
+.hero > :first-child { margin-top: auto; }
+.hero > :last-child { margin-bottom: auto; }
 .hero.is-gone { opacity: 0; pointer-events: none; }
 .hero.is-gone > * { pointer-events: none; }
 .hero-mark {
@@ -98,6 +107,10 @@ body.is-cinema .deck { transform: translateY(8px); }
 }
 .hero-line { margin: 0; font-size: 16px; color: var(--silk); text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9); }
 .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+/* the hosted site's pages, under the hero (the production build adds them) */
+.hero-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin-top: 4px; font: 500 10.5px/1.6 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.hero-links a { color: var(--dim); text-decoration: none; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.9); }
+.hero-links a:hover, .hero-links a:focus-visible { color: var(--silk); }
 
 .btn {
   font-weight: 500; font-size: 13.5px; letter-spacing: 0.02em;
@@ -117,7 +130,7 @@ body.is-cinema .deck { transform: translateY(8px); }
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 8;
   width: min(400px, 100vw);
   display: flex; flex-direction: column; gap: 14px;
-  padding: 18px 18px 24px;
+  padding: max(18px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
   background: var(--plate-2);
   backdrop-filter: blur(22px) saturate(1.15);
   border-right: 1px solid var(--etch-strong);
@@ -125,9 +138,22 @@ body.is-cinema .deck { transform: translateY(8px); }
   transform: translateX(calc(-100% - 40px));
   overflow-y: auto;
   overscroll-behavior: contain;
+  visibility: hidden;                                   /* closed means out of the tab order too, like the market */
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), visibility 0s 0.4s;
 }
-.crate.is-open { transform: none; }
+.crate.is-open { transform: none; visibility: visible; transition-delay: 0s; }
 .crate-head { display: flex; align-items: center; justify-content: space-between; min-height: 30px; }
+/* On a phone the crate is the whole screen, over the deck too: its close button stays at the top
+   while the lists scroll, or the only way out would be to scroll all the way back up. */
+@media (max-width: 640px), (pointer: coarse) {
+  .crate > .crate-head {
+    position: sticky; z-index: 2; flex: none;           /* (a flex item with a min-height would shrink under its padding) */
+    top: calc(-1 * max(18px, env(safe-area-inset-top)));   /* sticky counts from inside the crate's padding */
+    margin: calc(-1 * max(18px, env(safe-area-inset-top))) -18px 0 calc(-1 * max(18px, env(safe-area-inset-left)));
+    padding: max(18px, env(safe-area-inset-top)) 18px 6px max(18px, env(safe-area-inset-left));
+    background: #16161f;                                  /* solid: the rows slide under it */
+  }
+}
 .yt-form { display: flex; gap: 8px; }
 .yt-form input {
   flex: 1; min-width: 0;
@@ -159,8 +185,13 @@ body.is-cinema .deck { transform: translateY(8px); }
 .row-text { display: flex; flex-direction: column; min-width: 0; }
 .row-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row-meta { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row-remove { opacity: 0; }
-.row:hover .row-remove, .row-remove:focus-visible { opacity: 1; }
+/* The row's buttons wait for the pointer only where a real one can hover; on a touch screen an
+   invisible button that still takes a tap would remove a track nobody saw it offer to remove. */
+.row-remove { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .row-remove { opacity: 0; }
+  .row:hover .row-remove, .row:focus-within .row-remove { opacity: 1; }
+}
 .empty { margin: 0; font-size: 13px; color: var(--dim); }
 .job { padding: 10px 12px; border: 1px solid var(--etch); border-radius: 3px; background: rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; gap: 6px; }
 .job-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -177,7 +208,7 @@ body.is-cinema .deck { transform: translateY(8px); }
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 8;
   width: min(440px, 100vw);
   display: flex; flex-direction: column; gap: 12px;
-  padding: 18px 18px 0;
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 0 18px;
   background: var(--plate-2);
   backdrop-filter: blur(22px) saturate(1.15);
   border-left: 1px solid var(--etch-strong);
@@ -210,7 +241,7 @@ body.is-cinema .deck { transform: translateY(8px); }
 .chip-n { font: 400 9.5px/1 var(--font-mono); letter-spacing: 0; color: var(--dim); }
 .chip.is-active .chip-n { color: var(--beam); }
 .chip-sort { margin-left: auto; border-style: dashed; }
-.market-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0 -18px; padding: 2px 18px 26px; display: flex; flex-direction: column; gap: 16px; }
+.market-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0 -18px; padding: 2px 18px max(26px, calc(env(safe-area-inset-bottom) + 12px)); display: flex; flex-direction: column; gap: 16px; }
 .market-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
 .card { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .card-shot {
@@ -278,12 +309,17 @@ button.card-add:active { transform: scale(0.92); }
   content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.35;
   background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
 }
-.rack-bar { position: relative; display: flex; align-items: center; gap: 14px; height: var(--rack-bar-h); padding: 0 14px 0 10px; border-bottom: 1px solid var(--etch); }
-.rack-tabs { display: flex; gap: 2px; }
+.rack-bar { position: relative; display: flex; align-items: center; gap: 14px; height: var(--rack-bar-h); padding: 0 max(14px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left)); border-bottom: 1px solid var(--etch); }
+/* The tabs give way before the chevron does: when the bar is too narrow (a phone) they scroll
+   sideways, so every unit and the collapse button stay within reach. The LCD takes the slack first. */
+.rack-tabs { display: flex; gap: 2px; flex: 0 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain; }
+.rack-tabs::-webkit-scrollbar { display: none; }
 .tab {
+  flex: none; white-space: nowrap;
   font: 400 10px/1 var(--font-display); letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--dim); padding: 9px 12px 8px; border-bottom: 2px solid transparent;
 }
+#rack-toggle { flex: none; margin-left: auto; }
 .tab.is-active { color: var(--silk); border-color: var(--beam); }
 .lcd {
   flex: 1; min-width: 0; height: 28px;
@@ -300,7 +336,7 @@ button.card-add:active { transform: scale(0.92); }
 }
 .lcd-main { overflow: hidden; text-overflow: ellipsis; }
 .lcd-sub { color: rgba(var(--beam-rgb), 0.7); }
-.rack-unit { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 10px 14px 12px; overflow-x: auto; overscroll-behavior: contain; }
+.rack-unit { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 10px max(14px, env(safe-area-inset-right)) 12px max(14px, env(safe-area-inset-left)); overflow-x: auto; overscroll-behavior: contain; }
 .rack.is-collapsed .rack-unit { display: none; }
 .rack.is-collapsed #rack-toggle svg { transform: rotate(180deg); }
 
@@ -330,6 +366,8 @@ button.card-add:active { transform: scale(0.92); }
 .key:hover { border-color: var(--etch-strong); background: rgba(255, 255, 255, 0.06); }
 .key.is-active { border-color: rgba(var(--beam-rgb), 0.55); background: rgba(var(--beam-rgb), 0.08); }
 .key-ghost { color: var(--dim); }
+.key-icon { gap: 6px; white-space: nowrap; }
+.key-icon svg { width: 13px; height: 13px; flex: none; }
 .led { width: 6px; height: 6px; border-radius: 50%; background: #2a2a33; box-shadow: inset 0 0 2px #000; transition: background 0.15s, box-shadow 0.15s; }
 .key.is-active .led { background: var(--beam); box-shadow: 0 0 8px var(--beam), 0 0 2px #fff inset; }
 
@@ -481,7 +519,7 @@ button.card-add:active { transform: scale(0.92); }
 .deck {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; height: var(--deck-h);
   display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px;
-  padding: 0 14px;
+  padding: 0 max(14px, env(safe-area-inset-right)) env(safe-area-inset-bottom, 0px) max(14px, env(safe-area-inset-left));
   background: var(--plate-2);
   backdrop-filter: blur(18px) saturate(1.2);
   border-top: 1px solid var(--etch-strong);
@@ -496,7 +534,10 @@ button.card-add:active { transform: scale(0.92); }
 .icon-btn.play:hover { background: rgba(var(--beam-rgb), 0.3); }
 .icon-btn.play svg { width: 22px; height: 22px; }
 .time { font: 400 11.5px/1 var(--font-mono); color: var(--dim); min-width: 42px; text-align: center; }
-.seek { position: relative; flex: 1; height: 22px; cursor: pointer; }
+/* touch-action: none, or the browser takes a finger's drag for a scroll and cancels the scrub */
+.seek { position: relative; flex: 1; min-width: 0; height: 22px; cursor: pointer; touch-action: none; }
+/* a taller hit area than the 22 px the waveform is drawn in (meters.js sizes its canvas to that) */
+.seek::after { content: ''; position: absolute; left: 0; right: 0; top: -9px; bottom: -9px; }
 .seek::before { content: ''; position: absolute; left: 0; right: 0; top: 10px; height: 3px; background: var(--etch-strong); border-radius: 2px; }
 .seek-wave { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
 .seek.has-wave .seek-wave { display: block; }
@@ -526,7 +567,11 @@ button.card-add:active { transform: scale(0.92); }
 .lyrics-status.is-synced { color: var(--beam); }
 
 /* ── overlays ───────────────────────────────────────────────────────────── */
-.toasts { position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toasts { position: fixed; left: 50%; top: max(22px, env(safe-area-inset-top)); transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+/* a toast with a button in it (Undo, Share) takes taps; the others let them through to the page */
+.toast button { pointer-events: auto; }
+.toast-actions { display: inline-flex; gap: 8px; margin-left: 10px; vertical-align: middle; }
+.toast-actions .btn { padding: 5px 12px; font-size: 13px; }
 .toast {
   padding: 10px 16px; border-radius: 4px; max-width: min(560px, 90vw);
   background: var(--plate-2); backdrop-filter: blur(16px);
@@ -563,8 +608,9 @@ body.is-debug .debug { display: block; }
   .stage-grid { min-width: max-content; }
   .np-title { font-size: 15px; }
   .knob-row { min-width: max-content; }
-  .deck { gap: 8px; padding: 0 8px; }
+  .deck { gap: 8px; padding: 0 max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left)); }
   .vol input { width: 60px; }
+  /* still there: Export WAV is in the Sound unit, and a tap on the picture hides the controls */
   #btn-export, #btn-hide { display: none; }
 }
 /* On a phone the drawer would cover the whole stage, and a scene being tried could not be seen:
@@ -577,15 +623,81 @@ body.is-debug .debug { display: block; }
   .market .chip { flex: none; }
   .market .chip-sort { margin-left: 0; }
 }
+/* A phone, a touch tablet held upright, or a narrow window: the deck takes two rows, so the seek
+   bar gets a row of its own (time, bar, time, loop) above the buttons, wide enough to aim at. */
+@media (max-width: 760px), (max-width: 900px) and (min-height: 600px) and (pointer: coarse) {
+  :root { --deck-h: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .deck { grid-template-columns: 1fr auto; grid-template-rows: 40px 1fr; column-gap: 0; row-gap: 0; padding-top: 2px; }
+  .deck-center { grid-column: 1 / -1; grid-row: 1; gap: 8px; }
+  .deck-left { grid-column: 1; grid-row: 2; gap: 0; }
+  .deck-right { grid-column: 2; grid-row: 2; gap: 0; }
+  .time { min-width: 38px; }
+}
+/* A phone: the rack's tabs scroll sideways under a fade that says there are more. */
 @media (max-width: 640px) {
-  .market { padding: 14px 12px 0; }
-  .market-scroll { margin: 0 -12px; padding: 2px 12px 22px; }
-  .deck-center .time:last-child { display: none; }
+  .market { padding: max(14px, env(safe-area-inset-top)) 12px 0; }
+  .market-scroll { margin: 0 -12px; padding: 2px 12px max(22px, calc(env(safe-area-inset-bottom) + 12px)); }
   .vol { display: none; }
   .rec span { display: none; }
-  .rec { padding: 0 6px; }
+  .rec { padding: 0 6px; margin: 0 2px; }
+  .hero { padding-top: max(60px, calc(env(safe-area-inset-top) + 44px)); }   /* clear of the name plate when the stage is short */
   .hero-actions .btn { flex: 1 1 100%; }
+  .rack-bar { gap: 8px; padding-left: max(4px, env(safe-area-inset-left)); padding-right: max(6px, env(safe-area-inset-right)); }
+  .rack-tabs {
+    padding-right: 20px;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+  }
+  .tab { padding-left: 9px; padding-right: 9px; letter-spacing: 0.12em; }
+  .lcd { display: none; }
+  /* an open rack keeps most of the picture in view; what does not fit scrolls */
+  .rack-unit { max-height: 42vh; max-height: 42dvh; overflow-y: auto; }
 }
+/* A phone on its side: little height, so the hero and the rack get compact. */
+@media (max-height: 500px) {
+  .hero { gap: 10px; padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: 12px; }
+  .hero-mark { font-size: 28px; }
+  .hero-actions .btn { flex: 0 1 auto; }
+  .rack-unit { max-height: 45vh; max-height: 45dvh; overflow-y: auto; }
+}
+
+/* ── touch screens ──────────────────────────────────────────────────────── */
+/* A finger needs about 40 px to hit what it aims at. */
+@media (pointer: coarse) {
+  :root { --rack-bar-h: 44px; }
+  input, textarea, select { font-size: 16px; }         /* anything smaller and iOS zooms the page into the field */
+  .icon-btn { width: 40px; height: 40px; }
+  .icon-btn.play { width: 44px; height: 44px; }
+  .rec { height: 40px; min-width: 40px; justify-content: center; }
+  .btn { min-height: 40px; }
+  .tab { padding-top: 16px; padding-bottom: 12px; }
+  .key { min-height: 40px; }
+  .swatches { grid-template-columns: repeat(5, 36px); gap: 7px; }
+  .swatch { width: 36px; height: 36px; }
+  .card-add { width: 40px; height: 40px; right: 4px; top: 4px; }
+  .chip { padding: 15px 12px 14px; }
+  .market-tab { min-height: 40px; }
+  .help-card .icon-btn { width: 44px; height: 44px; }
+}
+/* The frosted glass costs the graphics chip a blur of the moving picture behind every panel, each
+   frame: a phone gets solid plates instead, a shade more opaque so the text stays as readable.
+   Pads show no keyboard letters where there is no keyboard. */
+@media (hover: none) and (pointer: coarse) {
+  :root { --plate: rgba(16, 16, 23, 0.94); --plate-2: rgba(22, 22, 31, 0.96); }
+  .plate, .btn, .crate, .market, .rack, .deck, .toast, .card-state, .card-add, .help-card, .drop-veil { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .pad-key { display: none; }
+}
+
+/* ── magic: recommendations in the crate ─────────────────────────────────── */
+.magic-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+.magic .legend { color: var(--beam); text-shadow: 0 0 12px rgba(var(--beam-rgb), 0.45); }
+.magic .key { padding: 3px 8px 3px 7px; font-size: 10.5px; }
+.magic-foot { display: flex; gap: 14px; }
+.magic-more { align-self: flex-start; }
+.row.is-busy { animation: pulse 0.9s infinite; pointer-events: none; }
+.row-saved .row-title::after { content: ' ●'; color: var(--beam); font-size: 8px; vertical-align: middle; }
+.row-skeleton { height: 45px; border-radius: 4px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }

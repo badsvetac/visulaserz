@@ -109,7 +109,25 @@ export class LyricLayer {
     this.ctx = this.canvas.getContext('2d');
     this.cursor = { x: 0, y: 0, rowH: 0 };
     this.atlasDirty = false;
+    this.#build(gl);
 
+    this.data = new Float32Array(FLOATS * 1024);
+    this.count = 0;
+    this.current = null;   // { sprites, style, def, lineT, lineEnd, words, stack: {prev, next} }
+    this.leaving = null;   // the previous line while it animates out
+    this.accent = [1, 0.3, 0.85];
+    this.beatAt = -10;
+    this.shake = 0;
+  }
+
+  // after a lost context: new GPU objects, and the glyph atlas (kept on its 2D canvas) sent again
+  restore(gl) {
+    this.gl = gl;
+    this.#build(gl);
+    this.atlasDirty = true;
+  }
+
+  #build(gl) {
     const compile = (type, src) => {
       const sh = gl.createShader(type);
       gl.shaderSource(sh, src);
@@ -149,14 +167,6 @@ export class LyricLayer {
       gl.vertexAttribDivisor(loc, 1);
     });
     gl.bindVertexArray(null);
-
-    this.data = new Float32Array(FLOATS * 1024);
-    this.count = 0;
-    this.current = null;   // { sprites, style, def, lineT, lineEnd, words, stack: {prev, next} }
-    this.leaving = null;   // the previous line while it animates out
-    this.accent = [1, 0.3, 0.85];
-    this.beatAt = -10;
-    this.shake = 0;
   }
 
   setAccent(rgb) { this.accent = rgb; }

@@ -1,0 +1,26 @@
+.account-launcher { position: fixed; z-index: 12; top: max(16px, env(safe-area-inset-top)); right: max(20px, env(safe-area-inset-right)); max-width: 45vw; min-height: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.crate-open .account-launcher { left: max(120px, calc(env(safe-area-inset-left) + 102px)); right: auto; top: max(12px, calc(env(safe-area-inset-top) - 6px)); max-width: min(200px, calc(100vw - 182px)); }
+body.has-market:not(.crate-open) .account-launcher { z-index: 7; }
+.account-dialog { width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 34px; color: var(--silk); background: #101019; border: 1px solid var(--etch-strong); border-top: 2px solid var(--beam); border-radius: 10px; box-shadow: 0 24px 100px #000b; overflow: auto; user-select: text; }
+.account-dialog::backdrop { background: #030309c9; backdrop-filter: blur(8px); }
+.account-dialog h2 { font: 400 19px/1.5 var(--font-display); letter-spacing: -.04em; margin: 20px 0 10px; padding-right: 10px; }
+.account-dialog .legend { color: var(--beam); }
+.account-close { position: absolute; right: 12px; top: 10px; width: 44px; height: 44px; font-size: 28px; }
+.account-intro { color: var(--dim); font-size: 16px; line-height: 1.5; margin: 0 0 22px; overflow-wrap: anywhere; }
+.account-form { display: grid; gap: 15px; }
+.account-field { display: grid; gap: 7px; font-size: 14px; }
+.account-field input { width: 100%; min-width: 0; min-height: 48px; border: 1px solid var(--etch-strong); border-radius: 4px; background: #08080f; color: #fff; padding: 10px 12px; font-size: 16px; user-select: text; }
+.account-form > .btn { min-height: 48px; font-size: 16px; }
+.account-link { min-height: 44px; color: var(--silk); text-decoration: underline; text-underline-offset: 4px; text-align: left; }
+.account-show { justify-self: end; margin-top: -10px; font-size: 13px; }
+.account-switches { display: grid; gap: 1px; margin-top: 18px; }
+.account-status { min-height: 0; margin: 0; color: #a0eac9; font-size: 15px; line-height: 1.45; }
+.account-status:empty { display: none; }
+.account-dialog .is-error { color: #ff9caa; }
+.account-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.account-actions .btn { min-height: 46px; flex: 1 1 160px; }
+.account-name { font-size: 22px; margin-top: 0; overflow-wrap: anywhere; }
+.account-recovery { display: block; padding: 16px; margin: 8px 0 24px; background: #06060c; border: 1px dashed var(--beam); font-family: var(--font-mono); font-size: 15px; line-height: 1.8; overflow-wrap: anywhere; user-select: all; }
+@media (max-width: 520px) { .account-dialog { padding: 26px 22px; } .account-dialog h2 { font-size: 17px; } .account-launcher { right: max(12px, env(safe-area-inset-right)); font-size: 12px; padding-inline: 12px; } }
+/* a phone: no blur of the moving picture behind the dialog (style.css explains) */
+@media (hover: none) and (pointer: coarse) { .account-dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; background: #030309e6; } }

@@ -1,5 +1,6 @@
 import { clamp, store } from '../util.js';
 import { LYRIC_STYLE_NAMES, loadLyricFonts } from '../gfx/lyric-layer.js';
+import { savedSync } from './lyric-sync.js';
 
 export const LYRIC_STYLES = ['Auto', ...LYRIC_STYLE_NAMES.map((s) => s[0].toUpperCase() + s.slice(1))];
 export const LYRIC_FONT_NAMES = ['Auto', 'Body', 'Display', 'Poster', 'Serif', 'Mono'];
@@ -129,6 +130,9 @@ export class Lyrics {
     this.#clear('searching', 'Looking for synced lyrics…');
     const my = this.token;
     if (!track || track.source === 'demo') return this.#setStatus('none', 'The demo has no words.');
+    // a sync made here by tapping wins over a lookup, unless the lookup was asked for by name
+    const mine = !query && savedSync(track);
+    if (mine) { this.setLrc(mine, 'your tap sync'); return; }
     if (!this.engine.duration && !track.duration) await new Promise((r) => setTimeout(r, 800));
     if (my !== this.token) return;
     try {
@@ -141,8 +145,8 @@ export class Lyrics {
       if (data.synced) this.setLrc(data.synced, label);
       else if (data.plain) {
         this.plain = data.plain;
-        this.#setStatus('plain', `Words found (${label}) but not timed. Drop an .lrc file to sync them.`);
-      } else this.#setStatus('none', 'No lyrics found. Search “artist - song” above, drop an .lrc file, or paste LRC text.');
+        this.#setStatus('plain', `Words found (${label}) but not timed. Tap sync times them as the song plays.`);
+      } else this.#setStatus('none', 'No lyrics found. Search “artist - song” above, drop an .lrc file, paste LRC, or tap sync your own.');
     } catch (e) {
       if (my === this.token) this.#setStatus('error', e.message);
     }
@@ -166,7 +170,7 @@ export class Lyrics {
 
   tick(dt, an) {
     const layer = this.layer;
-    if (!this.lines || !this.prefs.enabled) {
+    if (!this.lines || !this.prefs.enabled || this.engine.decks) {
       if (layer.count) layer.clear();
       return;
     }

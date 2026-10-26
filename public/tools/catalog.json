@@ -1,0 +1,287 @@
+{
+ "version": 1,
+ "groups": [
+  "Studio",
+  "Pads",
+  "Rhythm",
+  "Instruments",
+  "FX"
+ ],
+ "tools": [
+  {
+   "id": "studio",
+   "name": "Studio",
+   "group": "Studio",
+   "blurb": "A music workstation over the song, built like FL Studio: playlist, channel rack, piano roll, mixer with effect slots and plugin windows, locked to the song’s tempo and key",
+   "tags": [
+    "studio",
+    "daw",
+    "playlist",
+    "piano roll",
+    "mixer",
+    "beat maker",
+    "fl studio"
+   ],
+   "file": "studio.js",
+   "thumb": "thumbs/studio.svg"
+  },
+  {
+   "id": "touchfx",
+   "name": "Touch FX",
+   "group": "Pads",
+   "blurb": "A Kaoss-style touch pad on the whole mix: filter sweeps, a hand-played flanger, bit crush, tempo echo and wobble, two settings under one finger",
+   "tags": [
+    "touch",
+    "pad",
+    "kaoss",
+    "filter",
+    "echo",
+    "wobble"
+   ],
+   "file": "touchfx.js",
+   "thumb": "thumbs/touchfx.svg"
+  },
+  {
+   "id": "roll",
+   "name": "Beat Roll",
+   "group": "Rhythm",
+   "blurb": "Hold a pad and the last beat, half, quarter or 32nd repeats in time; let go and the track is back where it would have been. With a reverse and a filter roll",
+   "tags": [
+    "roll",
+    "stutter",
+    "repeat",
+    "reverse",
+    "slip",
+    "loop"
+   ],
+   "file": "roll.js",
+   "thumb": "thumbs/roll.svg"
+  },
+  {
+   "id": "scratch",
+   "name": "Scratch",
+   "group": "Rhythm",
+   "blurb": "A record over the mix: grab it to scratch the last few seconds, let go and the track is where it would have been. With a cut, a brake and a backspin",
+   "tags": [
+    "scratch",
+    "vinyl",
+    "turntable",
+    "dj",
+    "backspin",
+    "brake"
+   ],
+   "file": "scratch.js",
+   "thumb": "thumbs/scratch.svg"
+  },
+  {
+   "id": "stepgate",
+   "name": "Step Gate",
+   "group": "Rhythm",
+   "blurb": "Paint a 16-step rhythm and it chops the whole mix in time with the track: on, half or off per step, with swing and depth. Patterns to start from",
+   "tags": [
+    "gate",
+    "chop",
+    "trance",
+    "sequencer",
+    "rhythm",
+    "swing"
+   ],
+   "file": "stepgate.js",
+   "thumb": "thumbs/stepgate.svg"
+  },
+  {
+   "id": "looper",
+   "name": "Looper",
+   "group": "Rhythm",
+   "blurb": "Record a few bars of what you play (or of the whole mix) and it loops in time while you layer more on top. Overdub, undo, and solo the loop over silence",
+   "tags": [
+    "loop",
+    "looper",
+    "overdub",
+    "layers",
+    "record",
+    "jam"
+   ],
+   "file": "looper.js",
+   "thumb": "thumbs/looper.svg"
+  },
+  {
+   "id": "drums",
+   "name": "Drum Pads",
+   "group": "Instruments",
+   "blurb": "Eight drum pads to play over any track, kick to air horn, quantised to its beat so your hits land in time. Three kits, all synthesised",
+   "tags": [
+    "drums",
+    "pads",
+    "kick",
+    "horn",
+    "finger drumming",
+    "quantise"
+   ],
+   "file": "drums.js",
+   "thumb": "thumbs/drums.svg"
+  },
+  {
+   "id": "theremin",
+   "name": "Theremin",
+   "group": "Instruments",
+   "blurb": "A one-finger lead over the track, always in key: slide for the melody, lift your finger higher for tone and vibrato. Listen finds the key of the song by ear",
+   "tags": [
+    "synth",
+    "lead",
+    "melody",
+    "scale",
+    "key",
+    "hijaz"
+   ],
+   "file": "theremin.js",
+   "thumb": "thumbs/theremin.svg"
+  },
+  {
+   "id": "chop",
+   "name": "Chop",
+   "group": "Instruments",
+   "blurb": "Grab the last two bars of the track and play them back from eight pads like an MPC, in any order, in time. Mute the track and only your chops are left",
+   "tags": [
+    "sampler",
+    "chop",
+    "mpc",
+    "slices",
+    "finger drumming",
+    "remix"
+   ],
+   "file": "chop.js",
+   "thumb": "thumbs/chop.svg"
+  },
+  {
+   "id": "chords",
+   "name": "Chords",
+   "group": "Instruments",
+   "blurb": "The seven chords of the song’s key on seven pads, with the bass under them: Listen finds the key by ear. Play them as pads, plucks, strums or an arpeggio in time",
+   "tags": [
+    "chords",
+    "harmony",
+    "arpeggio",
+    "key",
+    "synth",
+    "play along"
+   ],
+   "file": "chords.js",
+   "thumb": "thumbs/chords.svg"
+  },
+  {
+   "id": "siren",
+   "name": "Dub Siren",
+   "group": "Instruments",
+   "blurb": "The sound-system siren: hold it for a wail, an alarm, a laser or a rise that swings with the track, and let the tempo-locked echo carry it away",
+   "tags": [
+    "siren",
+    "dub",
+    "reggae",
+    "laser",
+    "echo",
+    "sound system"
+   ],
+   "file": "siren.js",
+   "thumb": "thumbs/siren.svg"
+  },
+  {
+   "id": "micfx",
+   "name": "Mic FX",
+   "group": "Instruments",
+   "blurb": "Your voice over the track: shift it up or down, make it a robot or a radio, or a vocoder that turns what you say into chords in the song’s key. Headphones on",
+   "tags": [
+    "microphone",
+    "vocoder",
+    "voice",
+    "pitch",
+    "robot",
+    "karaoke",
+    "mc"
+   ],
+   "file": "micfx.js",
+   "thumb": "thumbs/micfx.svg"
+  },
+  {
+   "id": "riser",
+   "name": "Riser",
+   "group": "FX",
+   "blurb": "The build before the drop: push the fader and the track thins, noise sweeps up and a snare roll speeds up in time. Let go at the top and it drops on an impact",
+   "tags": [
+    "riser",
+    "build",
+    "drop",
+    "sweep",
+    "snare roll",
+    "edm"
+   ],
+   "file": "riser.js",
+   "thumb": "thumbs/riser.svg"
+  },
+  {
+   "id": "pump",
+   "name": "Pump",
+   "group": "FX",
+   "blurb": "The sidechain pump of dance music: on every beat the whole mix ducks and swells back, so any track breathes in time. Depth, shape, quarters to eighths",
+   "tags": [
+    "sidechain",
+    "pump",
+    "ducking",
+    "edm",
+    "house",
+    "groove"
+   ],
+   "file": "pump.js",
+   "thumb": "thumbs/pump.svg"
+  },
+  {
+   "id": "freeze",
+   "name": "Sound Freeze",
+   "group": "FX",
+   "blurb": "Hold it and the music stops in mid-air: the moment keeps sounding as a cloud of grains, an octave up or down if you like, while the picture stands still with it",
+   "tags": [
+    "freeze",
+    "granular",
+    "stutter",
+    "drone",
+    "pad",
+    "transition"
+   ],
+   "file": "freeze.js",
+   "thumb": "thumbs/freeze.svg"
+  },
+  {
+   "id": "vocalcut",
+   "name": "Vocal Cut",
+   "group": "FX",
+   "blurb": "Take the singer out of the song for a karaoke or an instrumental, or keep only the voice for an a cappella moment. Works on any studio mix, live",
+   "tags": [
+    "karaoke",
+    "vocals",
+    "acapella",
+    "instrumental",
+    "mid side",
+    "stereo"
+   ],
+   "file": "vocalcut.js",
+   "thumb": "thumbs/vocalcut.svg"
+  },
+  {
+   "id": "lofi",
+   "name": "Lo-fi Machine",
+   "group": "FX",
+   "blurb": "Put the whole mix on a stretched cassette, a dusty record or a pocket radio: wow, flutter, warm drive, a narrowing band and the hiss and crackle under it",
+   "tags": [
+    "lofi",
+    "tape",
+    "vinyl",
+    "wow",
+    "flutter",
+    "saturation",
+    "crackle"
+   ],
+   "file": "lofi.js",
+   "thumb": "thumbs/lofi.svg"
+  }
+ ]
+}

@@ -8,3 +8,6 @@ server.js
 .claude
 README.md
 *.log
+dist
+.build-cache
+Visulaserz.bat

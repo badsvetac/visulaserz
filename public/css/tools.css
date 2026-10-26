@@ -1,0 +1,352 @@
+/* Tools: the market's second shelf, played on panels that float over the stage.
+   A panel is a small piece of the rack you can carry around: the same smoked plate, the same
+   silk-screened legends, and the palette's --beam as its only live colour. */
+
+/* ── market shelves ─────────────────────────────────────────────────────── */
+.market-tabs { display: flex; gap: 2px; margin-top: -4px; border-bottom: 1px solid var(--etch); }
+.market-tab {
+  font: 400 10px/1 var(--font-display); letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--dim); padding: 9px 12px 8px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.market-tab:hover { color: var(--silk); }
+.market-tab.is-active { color: var(--silk); border-color: var(--beam); }
+.card-shot-tool { background: radial-gradient(120% 90% at 50% 100%, rgba(var(--beam-rgb), 0.16), #0b0b11 70%); }
+.card-shot-tool img { object-fit: contain; }
+
+/* ── the desk ───────────────────────────────────────────────────────────── */
+/* Above the stage, the rack and the DJ console; under the drawers, which slide over everything. */
+.tool-layer { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
+.crate, .market { z-index: 10; }
+/* On the hosted site the Sign in button sits in the top right corner, right where a big panel
+   (the Studio) keeps its fold and close buttons. While a tool is out it goes under the desk, as it
+   goes under the market drawer: wherever no panel covers it, it is still there to click. */
+body.has-tool-panel:not(.crate-open) .account-launcher { z-index: 7; }
+/* On a touch screen there is no pointer resting on a panel to keep it awake: an open tool stays in
+   view (and playable) when the rest of the controls fade for the show. Hide (H) still hides it. */
+@media (hover: none), (pointer: coarse) {
+  body.is-cinema:not(.is-hidden) .tool-layer.has-panel { opacity: 1; }
+}
+
+.tool-panel {
+  position: absolute; left: 0; top: 0; pointer-events: auto;
+  display: flex; flex-direction: column; min-width: 160px;
+  background: linear-gradient(180deg, rgba(25, 25, 34, 0.93), rgba(12, 12, 18, 0.95));
+  backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--etch-strong); border-radius: 7px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.2s, opacity 0.15s;
+}
+.tool-panel::before {
+  /* the rack's brushed grain */
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0.3;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
+}
+.tool-panel:focus-within { border-color: rgba(var(--beam-rgb), 0.55); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(var(--beam-rgb), 0.22), 0 0 28px rgba(var(--beam-rgb), 0.16); }
+.tool-panel.is-moving { opacity: 0.94; transition: none; box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65); }
+.tool-panel.is-called { animation: tool-called 0.7s var(--ease); }
+@keyframes tool-called {
+  0% { box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 0 0 rgba(var(--beam-rgb), 0.75); }
+  100% { box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 0 16px rgba(var(--beam-rgb), 0); }
+}
+
+.tool-head {
+  position: relative; display: flex; align-items: center; gap: 8px; height: 30px; flex: none;
+  padding: 0 3px 0 9px; border-bottom: 1px solid var(--etch);
+  cursor: grab; touch-action: none;
+}
+.tool-panel.is-moving .tool-head { cursor: grabbing; }
+.tool-grip { width: 10px; height: 14px; flex: none; opacity: 0.55; background: radial-gradient(circle, rgba(255, 255, 255, 0.55) 1px, transparent 1.4px) 0 0 / 5px 5px; }
+.tool-name { flex: 1; min-width: 0; font: 400 9.5px/1 var(--font-display); letter-spacing: 0.24em; text-transform: uppercase; color: var(--silk); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tool-led { width: 6px; height: 6px; flex: none; margin-right: 4px; border-radius: 50%; background: #2a2a33; box-shadow: inset 0 0 2px #000; transition: background 0.1s, box-shadow 0.1s; }
+.tool-panel.is-playing .tool-led { background: var(--beam); box-shadow: 0 0 8px var(--beam), 0 0 2px #fff inset; }
+.tool-btn { width: 24px; height: 24px; flex: none; display: grid; place-items: center; border-radius: 4px; color: var(--dim); }
+.tool-btn svg { width: 13px; height: 13px; }
+.tool-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.tool-head .tool-btn:first-of-type svg { transform: rotate(180deg); transition: transform 0.2s var(--ease); }
+.tool-panel.is-min .tool-head .tool-btn:first-of-type svg { transform: none; }
+.tool-panel.is-min .tool-head { border-bottom: 0; }
+.tool-panel.is-min .tool-body, .tool-panel.is-min .tool-resize { display: none; }
+
+.tool-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; padding: 9px 10px 10px; }
+.tool-resize {
+  position: absolute; right: 1px; bottom: 1px; width: 16px; height: 16px; cursor: nwse-resize; touch-action: none; border-bottom-right-radius: 6px;
+  background: linear-gradient(135deg, transparent 52%, rgba(255, 255, 255, 0.22) 52% 58%, transparent 58% 70%, rgba(255, 255, 255, 0.22) 70% 76%, transparent 76%);
+}
+.tool-resize:hover { background-color: rgba(var(--beam-rgb), 0.12); }
+
+/* ── shared parts inside a tool ─────────────────────────────────────────── */
+.tool-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tool-row-end { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.tool-group { display: flex; flex-direction: column; gap: 3px; }
+.tool-group-body { display: flex; align-items: center; gap: 4px; }
+.tool-panel .knob { width: 50px; }
+.tool-panel .knob svg { width: 38px; height: 38px; }
+.tool-panel .cycle { min-width: 0; padding: 3px 3px 1px; }
+.tool-panel .cycle-value { min-width: 50px; padding: 4px 6px; font-size: 10.5px; }
+.tool-panel .switch { min-width: 0; padding: 4px 4px 2px; }
+.tool-panel .pad { width: auto; min-width: 0; min-height: 48px; flex: 1; padding: 6px 4px; }
+.tool-keys { display: flex; gap: 3px; flex-wrap: wrap; }
+.tool-key {
+  flex: 1 1 auto; text-align: center; white-space: nowrap;
+  /* Michroma is too wide for five keys in a row: the body face, the way the faders are labelled */
+  font: 600 10px/1 var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim);
+  padding: 6px 4px 5px; border: 1px solid var(--etch); border-radius: 3px; background: rgba(255, 255, 255, 0.025);
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.tool-key:hover { color: var(--silk); border-color: var(--etch-strong); }
+.tool-key.is-active { color: #fff; border-color: rgba(var(--beam-rgb), 0.65); background: rgba(var(--beam-rgb), 0.15); }
+.tool-key kbd { font: 400 8px var(--font-mono); color: var(--dim); margin-left: 4px; }
+.tool-readout { font: 400 10.5px/1 var(--font-mono); color: var(--beam); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tool-hint { font: 400 10px/1.35 var(--font-body); color: var(--dim); letter-spacing: 0.02em; }
+
+/* a touch surface drawn on a canvas: the pads, the theremin, the platter */
+.tool-surface {
+  position: relative; flex: 1; min-height: 60px; overflow: hidden;
+  border: 1px solid var(--etch-strong); border-radius: 5px;
+  background: radial-gradient(120% 120% at 50% 110%, rgba(var(--beam-rgb), 0.1), rgba(0, 0, 0, 0.5));
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.75);
+  cursor: crosshair; touch-action: none;
+}
+.tool-surface canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tool-surface.is-held { border-color: var(--beam); box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.75), 0 0 16px rgba(var(--beam-rgb), 0.35); }
+
+/* a tool's name stays whole: on a narrow card its group moves up above it instead of squeezing it */
+.card-shot-tool { container: tool-card / inline-size; }
+.card-shot-tool .card-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-shot-tool .card-group { flex: none; }
+@container tool-card (max-width: 250px) {
+  .card-shot-tool .card-name { flex-direction: column-reverse; align-items: flex-start; gap: 4px; }
+}
+
+/* ── the Perform rack's tray ────────────────────────────────────────────── */
+.tool-tray { flex-wrap: wrap; align-content: flex-start; max-width: 360px; }
+.tool-tray-empty { align-self: center; font-size: 12px; color: var(--dim); padding-right: 4px; }
+
+/* ── Drum pads ──────────────────────────────────────────────────────────── */
+.drum-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; flex: 1; }
+.drum-grid .pad { min-height: 54px; }
+.drum-grid .pad .pad-label { font-size: 8px; }
+.drum-grid .pad.is-hit { background: rgba(var(--beam-rgb), 0.32); border-color: var(--beam); box-shadow: 0 0 14px rgba(var(--beam-rgb), 0.5); transition: none; }
+.beat-lights { display: flex; gap: 5px; align-items: center; padding: 0 2px; }
+.beat-lights span { width: 7px; height: 7px; border-radius: 50%; background: #23232c; box-shadow: inset 0 0 2px #000; }
+.beat-lights span.is-on { background: var(--beam); box-shadow: 0 0 8px var(--beam); }
+.beat-lights span:first-child.is-on { background: #fff; box-shadow: 0 0 8px var(--beam), 0 0 3px #fff; }
+
+/* ── Beat roll ──────────────────────────────────────────────────────────── */
+.roll-pads { display: flex; gap: 5px; }
+.roll-pads .pad { min-height: 58px; }
+.roll-pads .pad .pad-label { font: 400 15px/1 var(--font-mono); letter-spacing: 0; }
+.roll-pads .pad-rev .pad-label { font: 400 8.5px/1.2 var(--font-display); letter-spacing: 0.1em; }
+.roll-pads .pad-rev { flex: 1.25; border-color: rgba(var(--beam-rgb), 0.4); }
+.roll-meter { position: relative; height: 6px; border-radius: 3px; background: #14141b; border: 1px solid var(--etch-strong); overflow: hidden; }
+.roll-meter i { position: absolute; top: 0; bottom: 0; left: 0; width: 0; background: var(--beam); box-shadow: 0 0 8px var(--beam); opacity: 0.85; }
+
+/* ── Scratch ────────────────────────────────────────────────────────────── */
+.tool-scratch .tool-surface { cursor: grab; border-radius: 6px; background: radial-gradient(110% 110% at 50% 45%, #15151d, #07070b 70%); }
+.tool-scratch .tool-surface.is-held { cursor: grabbing; }
+.scratch-foot { display: flex; gap: 6px; align-items: stretch; }
+.scratch-foot .pad { flex: 1; min-height: 44px; }
+
+/* ── Riser ──────────────────────────────────────────────────────────────── */
+.riser { display: flex; gap: 10px; flex: 1; min-height: 0; }
+.riser-slot {
+  position: relative; width: 64px; flex: none; border-radius: 6px; cursor: ns-resize; touch-action: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.35)); border: 1px solid var(--etch-strong);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.75);
+}
+.riser-fill {
+  position: absolute; left: 6px; right: 6px; bottom: 6px; height: 0; border-radius: 3px;
+  background: linear-gradient(0deg, rgba(var(--beam-rgb), 0.25), var(--beam));
+  box-shadow: 0 0 calc(6px + 22px * var(--a, 0)) rgba(var(--beam-rgb), calc(0.3 + 0.5 * var(--a, 0)));
+}
+.riser-cap {
+  position: absolute; left: 3px; right: 3px; height: 14px; margin-bottom: -7px; bottom: 6px; border-radius: 3px;
+  background: linear-gradient(180deg, #55556a, #22222c); border: 1px solid var(--etch-strong);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+.riser-cap::after { content: ''; position: absolute; left: 6px; right: 6px; top: 6px; height: 1px; background: var(--silk); }
+.riser-slot.is-held .riser-cap { border-color: var(--beam); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 12px rgba(var(--beam-rgb), 0.7); }
+.riser-mark { position: absolute; left: 0; right: 0; top: 12%; border-top: 1px dashed rgba(var(--beam-rgb), 0.55); pointer-events: none; }
+.riser-mark::after { content: 'DROP'; position: absolute; right: 4px; top: 2px; font: 400 7px/1 var(--font-display); letter-spacing: 0.16em; color: rgba(var(--beam-rgb), 0.85); }
+.riser-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.riser-side .switch { flex-direction: row; justify-content: flex-start; gap: 8px; padding: 3px 4px; }
+.riser-side .pad { flex: 1; min-height: 56px; }
+.riser-side .pad.is-ready { border-color: var(--beam); box-shadow: 0 0 16px rgba(var(--beam-rgb), 0.55); animation: pulse 0.5s infinite; }
+.tool-riser.is-dropped { animation: tool-drop 0.5s var(--ease); }
+@keyframes tool-drop { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.8), 0 0 60px rgba(var(--beam-rgb), 0.9); } 100% { box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); } }
+
+/* ── Step gate ──────────────────────────────────────────────────────────── */
+.steps { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 3px; flex: 1; min-height: 46px; touch-action: none; }
+.step {
+  position: relative; border-radius: 3px; border: 1px solid var(--etch-strong); background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6); cursor: pointer;
+}
+.step:nth-child(4n + 1) { border-left-color: rgba(255, 255, 255, 0.32); }
+.step.is-on { background: linear-gradient(180deg, rgba(var(--beam-rgb), 0.75), rgba(var(--beam-rgb), 0.35)); border-color: rgba(var(--beam-rgb), 0.85); }
+.step.is-half { background: linear-gradient(180deg, transparent 45%, rgba(var(--beam-rgb), 0.45) 45%); border-color: rgba(var(--beam-rgb), 0.5); }
+.step.is-now { outline: 1px solid #fff; outline-offset: 1px; box-shadow: 0 0 12px rgba(var(--beam-rgb), 0.8); }
+
+/* ── Pump ───────────────────────────────────────────────────────────────── */
+.pump-scope { min-height: 84px; cursor: default; }
+
+/* ── Looper ─────────────────────────────────────────────────────────────── */
+.looper-pads { display: flex; gap: 6px; }
+.looper-pads .pad { min-height: 52px; }
+.looper-pads .pad:first-child { flex: 1.6; }
+.pad.is-armed { border-color: var(--beam); animation: pulse 0.5s infinite; }
+.pad.is-recording { border-color: var(--danger); background: rgba(255, 92, 92, 0.18); box-shadow: 0 0 14px rgba(255, 92, 92, 0.45); }
+.pad.is-recording .led { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+.looper-meter { height: 8px; }
+
+/* ── Chop ───────────────────────────────────────────────────────────────── */
+.chop-wave { flex: none; height: 74px; min-height: 74px; cursor: default; }
+.chop-grid .pad .pad-label { font: 400 15px/1 var(--font-mono); letter-spacing: 0; }
+
+/* ── Chords ─────────────────────────────────────────────────────────────── */
+.chord-pads { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; flex: 1; }
+.chord-pads .pad { min-height: 62px; gap: 5px; }
+.chord-pads .pad .pad-label { font: 500 14px/1 var(--font-body); letter-spacing: 0.01em; text-transform: none; color: #fff; }
+.pad-roman { font: 400 7.5px/1 var(--font-display); letter-spacing: 0.14em; color: var(--dim); }
+.chord-pads .pad.is-down .pad-roman { color: var(--beam); }
+/* the home chord is the one a song keeps coming back to: it gets the accent */
+.chord-pads .pad:first-child { border-color: rgba(var(--beam-rgb), 0.45); }
+
+/* ── Freeze ─────────────────────────────────────────────────────────────── */
+.freeze-view { cursor: default; min-height: 64px; }
+.freeze-row .pad { flex: 1; min-height: 56px; }
+.freeze-pad .pad-label { font-size: 10px; letter-spacing: 0.22em; }
+.pad.is-frozen { background: linear-gradient(180deg, rgba(var(--beam-rgb), 0.36), rgba(var(--beam-rgb), 0.12)); border-color: var(--beam); box-shadow: 0 0 18px rgba(var(--beam-rgb), 0.45); }
+.pad.is-frozen .led { background: var(--beam); box-shadow: 0 0 8px var(--beam); }
+
+/* ── Vocal cut ──────────────────────────────────────────────────────────── */
+.vocal-scope { cursor: default; background: #06060a; }
+
+/* ── Dub siren ──────────────────────────────────────────────────────────── */
+.siren-row { gap: 8px; }
+.siren-row .pad { flex: 1; min-height: 58px; }
+.siren-pad .pad-label { font-size: 10px; letter-spacing: 0.22em; }
+
+/* ── Lo-fi machine ──────────────────────────────────────────────────────── */
+.lofi-styles { flex: 1; }
+.lofi-knobs { justify-content: space-between; padding: 2px 4px 0; }
+
+/* ── Mic FX ─────────────────────────────────────────────────────────────── */
+.mic-row { align-items: stretch; flex-wrap: nowrap; }
+.mic-meter { flex: 1; min-height: 34px; cursor: default; }
+.mic-mode { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+.mic-mode .tool-hint { max-width: 200px; }
+.key.is-armed { animation: pulse 0.5s infinite; }
+
+/* ── the Clip unit: how the video comes out ─────────────────────────────── */
+.clip-row .group-body { gap: 6px; }
+.clip-name {
+  width: 176px; padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35); border: 1px solid var(--etch-strong); border-radius: 3px;
+  color: #fff; font: 500 12.5px/1 var(--font-body); user-select: text;
+}
+.clip-name::placeholder { color: var(--dim); }
+.clip-name:focus { border-color: rgba(var(--beam-rgb), 0.7); outline: none; }
+/* a stage framed to the video's shape shows where the picture ends */
+body.is-framed #stage { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 60px rgba(0, 0, 0, 0.6); }
+.take-status { font: 400 11px/1.3 var(--font-mono); color: var(--beam); white-space: nowrap; min-width: 150px; }
+.take-bar { width: 140px; height: 4px; border-radius: 2px; background: var(--etch-strong); overflow: hidden; }
+.take-bar i { display: block; height: 100%; width: 0; background: var(--beam); box-shadow: 0 0 8px var(--beam); }
+.take-meta { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding-left: 4px; }
+/* While a take renders, the stage shows the frames as they are made; the rest of the page waits. */
+.render-veil { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 96px; background: rgba(4, 4, 8, 0.18); }
+.render-card {
+  width: min(440px, 92vw); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
+  background: var(--plate-2); backdrop-filter: blur(16px); border: 1px solid var(--etch-strong); border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.render-card .btn { align-self: flex-end; padding: 7px 14px; }
+.render-msg { font: 400 11.5px/1.4 var(--font-mono); color: var(--beam); }
+.render-bar { width: 100%; height: 6px; }
+.key.is-recording { border-color: var(--danger); color: #fff; }
+.key.is-recording .led { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: blink 1s infinite; }
+
+/* ── the Control unit: MIDI, gamepads, the hand in the air ──────────────── */
+.control-row .group-body { gap: 8px; }
+.control-status { font: 400 11px/1.35 var(--font-mono); color: var(--dim); max-width: 180px; }
+.control-status.is-on { color: var(--beam); }
+.control-hint { max-width: 230px; color: var(--silk); }
+.control-cam { width: 96px; height: 72px; border-radius: 4px; border: 1px solid var(--etch-strong); background: rgba(0, 0, 0, 0.45); opacity: 0.45; }
+.control-cam.is-on { opacity: 1; border-color: rgba(var(--beam-rgb), 0.6); }
+.control-maps { list-style: none; margin: 0; padding: 0 4px 0 0; width: 310px; max-height: 76px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.control-maps li { display: flex; align-items: center; gap: 8px; font: 400 11px/1.3 var(--font-body); color: var(--silk); }
+.control-src { flex: none; min-width: 96px; font: 400 10.5px/1.3 var(--font-mono); color: var(--beam); }
+.control-to { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.control-x { flex: none; margin-left: auto; width: 18px; height: 18px; border-radius: 3px; color: var(--dim); border: 1px solid transparent; }
+.control-x:hover { color: #fff; border-color: var(--etch-strong); }
+.control-empty { color: var(--dim); }
+/* Learn: whatever can be learnt shows itself, whatever is mapped glows, and the one picked pulses */
+body.is-learning .knob, body.is-learning .pad, body.is-learning [data-surface] { outline: 1px dashed rgba(var(--beam-rgb), 0.45); outline-offset: 2px; }
+/* (the way around the page, which Learn leaves working, does not offer itself) */
+body.is-learning button:not(:is(#unit-control, .learn-chip, .rack-tabs, .tool-head, .market-tabs) button, #rack-toggle, #btn-rack, #crate-close, #market-close, #help-close):hover { outline: 1px dashed rgba(var(--beam-rgb), 0.75); outline-offset: 2px; }
+body.is-learning .is-mapped { outline: 1px solid rgba(var(--beam-rgb), 0.9); }
+body.is-learning .is-learn-target { outline: 2px solid #fff; outline-offset: 3px; animation: pulse 0.6s infinite; }
+.is-learnt { outline: 2px solid var(--beam) !important; outline-offset: 3px; }
+/* the chip over the stage while Learn is on: what it waits for, and Done. Only Done takes a press,
+   so a control under the chip can still be touched and learnt. */
+.learn-chip {
+  position: fixed; top: calc(max(22px, env(safe-area-inset-top)) + 50px); left: 50%; transform: translateX(-50%); z-index: 19;
+  display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 24px); padding: 5px 5px 5px 12px; pointer-events: none;
+  background: var(--plate-2); border: 1px solid rgba(var(--beam-rgb), 0.6); border-radius: 999px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  font: 500 12px/1.3 var(--font-body); color: var(--silk);
+}
+.learn-chip[hidden] { display: none; }
+.learn-chip-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--beam); box-shadow: 0 0 8px var(--beam); animation: pulse 1s infinite; }
+.learn-chip-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.learn-chip-done {
+  flex: none; pointer-events: auto; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--etch-strong);
+  background: rgba(var(--beam-rgb), 0.18); color: #fff; font: 600 11px/1 var(--font-body); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.learn-chip-done:hover { background: rgba(var(--beam-rgb), 0.32); }
+@media (pointer: coarse) { .learn-chip-done { padding: 11px 16px; } }
+
+@media (max-width: 640px) {
+  .tool-panel { max-width: calc(100vw - 8px); }
+  .tool-panel.is-max { max-width: none; }               /* "Fill the window" fills it, edge to edge */
+}
+/* a small screen: a panel is never bigger than the window, so what does not fit scrolls inside it */
+@media (max-width: 640px), (max-height: 500px) {
+  .tool-panel:not(.tool-studio) .tool-body { overflow: auto; overscroll-behavior: contain; }
+}
+/* fingers: a taller header with buttons apart, so Fold and Close are not hit for each other */
+@media (pointer: coarse) {
+  .tool-head { height: 40px; }
+  .tool-btn { width: 36px; height: 36px; }
+  .tool-head .tool-btn + .tool-btn { margin-left: 6px; }
+  .tool-resize { width: 26px; height: 26px; }
+}
+/* phones and tablets: the panels are opaque enough without blurring the moving stage behind them,
+   which the GPU would otherwise do again on every frame */
+@media (hover: none) and (pointer: coarse) {
+  .tool-panel, .render-card, .sync-card { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .tool-panel { background: linear-gradient(180deg, rgba(25, 25, 34, 0.97), rgba(12, 12, 18, 0.98)); }
+}
+
+/* ── Tap sync: timing the words by hand ─────────────────────────────────── */
+/* It sits low over the stage, so the lines can be watched landing while they are tapped. */
+.sync-veil { position: fixed; inset: auto 0 96px; z-index: 30; display: flex; justify-content: center; padding: 0 16px; pointer-events: none; }
+.sync-veil[hidden] { display: none; }
+.sync-card {
+  pointer-events: auto; width: min(560px, 100%); padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px;
+  background: var(--plate-2); backdrop-filter: blur(16px); border: 1px solid var(--etch-strong); border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.sync-pane { display: flex; flex-direction: column; gap: 10px; }
+.sync-pane[hidden] { display: none; }
+.sync-note { margin: 0; font: 400 12px/1.4 var(--font-body); color: var(--silk); }
+.sync-words { min-height: 150px; }
+.sync-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }
+.sync-actions .btn kbd { margin-left: 8px; font: 400 9.5px var(--font-mono); color: var(--dim); }
+.sync-head { display: flex; justify-content: space-between; align-items: baseline; }
+.sync-count { font: 400 11px var(--font-mono); color: var(--beam); }
+.sync-next { margin: 0; min-height: 2.6em; font: 600 22px/1.25 var(--font-body); color: #fff; text-wrap: balance; }
+.sync-next.is-pause { color: var(--dim); font-style: italic; font-weight: 400; }
+.sync-prev { margin: 0; min-height: 1.3em; font: 400 11.5px/1.3 var(--font-mono); color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sync-tap { min-width: 150px; padding: 12px 22px; font-size: 15px; }
+.sync-done { margin: 0; font: 400 13px/1.45 var(--font-body); color: var(--silk); }
+.sync-nudge { margin-right: auto; color: var(--dim); }

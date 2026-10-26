@@ -9,6 +9,15 @@ void main() {
   gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
 }`;
 
+// A texture laid over the overlay target as it is (premultiplied): the clip's name, logo and title card.
+export const BLIT_FRAG = `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 outColor;
+uniform sampler2D uTex;
+uniform float uAlpha;
+void main() { outColor = texture(uTex, vUv) * uAlpha; }`;
+
 export const SCENE_HEADER = `#version 300 es
 precision highp float;
 precision highp int;
@@ -22,6 +31,7 @@ uniform float uTravel;     // time that runs faster when the music is louder
 uniform float uCruise;     // the same, eased over ~1 s: vehicles glide instead of lurching
 uniform float uCruiseRate; // current cruise speed factor (~0.45 quiet … ~1.55 loud)
 uniform float uBass, uMid, uHigh, uLevel, uEnergy;
+uniform float uAudioActive; // actual playback/live input, excluding the idle demo spectrum
 uniform float uBeat;       // 1 on a beat, decays to 0
 uniform float uBeatAge;    // seconds since the last beat
 uniform float uBeatCount;
@@ -40,6 +50,8 @@ uniform sampler2D uBackdrop; // a photo the user dropped in, valid when uHasBack
 uniform float uHasArt, uArtAspect, uHasBackdrop, uBackdropAspect;
 uniform float uSpin;       // record angle in radians, follows the real playback rate
 uniform float uProgress;   // 0..1 through the track
+uniform float uElapsed;    // seconds into the track (0 for live input)
+uniform float uDuration;   // the track's length in seconds, 0 when there is none
 
 #define PI 3.14159265359
 #define TAU 6.28318530718
@@ -231,6 +243,7 @@ out vec4 outColor;
 uniform sampler2D uScene, uBloom, uOverlay;
 uniform vec2 uRes;
 uniform float uTime, uBloomAmt, uAberration, uGrain, uBeat, uPunch, uFade, uScanlines, uGlitch, uStrobe;
+uniform float uWarp, uTwist, uShock;   // what the market's tools do to the picture (renderer.bend / shock)
 uniform int uSymmetry;   // 0 off, 1 mirror, 2 quad, 3 kaleido x6, 4 kaleido x12
 #define TAU 6.28318530718
 float hash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
@@ -252,6 +265,16 @@ vec2 symmetry(vec2 uv) {
 
 void main() {
   vec2 uv = vUv;
+  // A tool can pull the picture in (a riser) or turn it (a scratch). A turned frame is enlarged
+  // just enough that its corners never show what lies past the edge of the picture.
+  if (uWarp > 0.0 || uTwist != 0.0) {
+    float aspect = uRes.x / uRes.y;
+    vec2 c = (uv - 0.5) * vec2(aspect, 1.0);
+    float s = sin(uTwist), k = cos(uTwist);
+    float cover = abs(k) + abs(s) * max(aspect, 1.0 / aspect);
+    c = mat2(k, s, -s, k) * c / (cover * (1.0 + uWarp));
+    uv = c / vec2(aspect, 1.0) + 0.5;
+  }
   if (uGlitch > 0.0) {
     float band = floor(uv.y * 28.0);
     float on = step(0.82, hash(vec2(band, floor(uTime * 24.0)))) * uGlitch * uBeat;
@@ -259,18 +282,85 @@ void main() {
   }
   uv = symmetry(uv);
   vec2 dir = uv - 0.5;
-  float amt = uAberration * (0.0015 + 0.012 * uBeat * uPunch) * (0.4 + 2.0 * dot(dir, dir));
+  float amt = (uAberration * (0.0015 + 0.012 * uBeat * uPunch) + uShock * uPunch * 0.03) * (0.4 + 2.0 * dot(dir, dir));
   vec3 col = vec3(texture(uScene, uv + dir * amt).r, texture(uScene, uv).g, texture(uScene, uv - dir * amt).b);
-  col += texture(uBloom, uv).rgb * uBloomAmt;
+  col += texture(uBloom, uv).rgb * (uBloomAmt + uShock * uPunch * 0.9);
   vec4 ov = texture(uOverlay, vUv);                    // lyrics: unwarped, over everything, before the tone curve
   col = col * (1.0 - ov.a) + ov.rgb;
 
   col = 1.0 - exp(-col * 1.35);                       // filmic-ish shoulder: bright stays coloured instead of clipping
   col = pow(col, vec3(0.92));
+  col = mix(col, vec3(1.0), uShock * uPunch * 0.18);   // a drop lands as a breath of light, softer with Reduce flashing
   vec2 v = (vUv - 0.5) * vec2(uRes.x / uRes.y, 1.0);
   col *= 1.0 - 0.42 * smoothstep(0.45, 1.25, length(v));
   col *= 1.0 - uScanlines * 0.22 * (0.5 + 0.5 * sin(vUv.y * uRes.y * 3.14159));
   col += (hash(vUv * uRes + fract(uTime) * 91.7) - 0.5) * uGrain * 0.09;
   col = mix(col, vec3(1.0), uStrobe * step(0.5, fract(uTime * 11.0)));
   outColor = vec4(max(col, 0.0) * uFade, 1.0);
+}`;
+
+// ── scene extras ───────────────────────────────────────────────────────────────
+// A scene plugin may bring up to two more shaders besides its picture (see drones.js, coral.js):
+//
+//   points: { count, vert, frag? }  A vertex shader run once per point, for things that are many
+//     and small — drones, fireflies. gl_VertexID is the point's number, uPointCount how many there
+//     are; it sets gl_Position, gl_PointSize (uPointScale converts "pixels at 1080p") and vColor
+//     (rgb, a = brightness), and vShape picks the sprite: 0 a point of light, 1 an out-of-focus
+//     disc. Points are added on top of the scene's own picture. Doing this in the scene's fragment
+//     shader would mean every pixel working out where all of them are; here each is placed once.
+//
+//   sim: { height, steps, frag }  A fragment shader with a memory: it reads last frame's state
+//     (uState) and writes this one's on a half-float texture `height` texels tall and as wide as
+//     the screen's aspect needs. It runs `steps` times per 60th of a second, whatever the frame
+//     rate. The scene's picture (and its points) read the same texture to draw what grew there.
+
+// Everything a sim scene's shaders share. On the first step uSimFrame is 0 and the state is zero.
+export const SIM_DECL = `
+uniform sampler2D uState;   // sim: last step's state · picture and points: the newest state
+uniform vec2  uStateRes;    // its size in texels
+uniform float uSimFrame;    // steps run since the scene came on
+vec4 stateAt(ivec2 t) { return texelFetch(uState, clamp(t, ivec2(0), ivec2(uStateRes) - 1), 0); }
+`;
+
+// The scene header, turned into a vertex shader header: same uniforms and helpers.
+const POINT_IO = 'in vec2 vUv;\nout vec4 outColor;\n';
+if (!SCENE_HEADER.includes(POINT_IO)) throw new Error('glsl.js: SCENE_HEADER changed; update POINT_HEADER');
+const POINT_HEADER = SCENE_HEADER.replace(POINT_IO, `out vec4 vColor;
+out float vShape;
+uniform float uPointCount;
+uniform float uPointScale;  // pixels per pixel of a 1080-line screen
+uniform float uPointMax;    // the largest gl_PointSize this graphics card draws
+const vec2 vUv = vec2(0.5);
+`);
+
+// The scene's main() runs inside ours, so a point it forgets to place stays off screen and dark.
+export function pointVertex(body, sim = false) {
+  return `${POINT_HEADER}${sim ? SIM_DECL : ''}${body.replace(/\bvoid\s+main\s*\(\s*(void)?\s*\)/, 'void pointMain()')}
+void main() {
+  vColor = vec4(0.0);
+  vShape = 0.0;
+  gl_PointSize = 1.0;
+  gl_Position = vec4(2.0, 2.0, 0.0, 1.0);
+  pointMain();
+}`;
+}
+
+export const POINT_FRAG_HEADER = `#version 300 es
+precision highp float;
+in vec4 vColor;
+in float vShape;
+out vec4 outColor;
+`;
+
+export const POINT_FRAG = `${POINT_FRAG_HEADER}
+void main() {
+  vec2 d = gl_PointCoord * 2.0 - 1.0;
+  float r2 = dot(d, d);
+  if (r2 > 1.0) discard;
+  // 0: a point of light, a hot core in a halo that reaches exactly zero at the sprite's edge
+  float light = (exp(-r2 * 4.0) - exp(-4.0)) * 0.75 + exp(-r2 * 32.0) * 1.9;
+  // 1: an out-of-focus disc, nearly flat with a slightly brighter rim, the way a lens draws one
+  float r = sqrt(r2);
+  float disc = (1.0 - smoothstep(0.80, 1.0, r)) * (0.72 + 0.4 * smoothstep(0.5, 0.95, r));
+  outColor = vec4(vColor.rgb * vColor.a * mix(light, disc, clamp(vShape, 0.0, 1.0)), 1.0);
 }`;

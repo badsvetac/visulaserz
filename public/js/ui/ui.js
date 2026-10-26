@@ -1,4 +1,4 @@
-import { $, el, clamp, formatTime, debounce, downloadBlob, safeFilename, store } from '../util.js';
+import { $, el, clamp, formatTime, debounce, downloadBlob, safeFilename, store, isIOS, isPhone } from '../util.js';
 import { FX_PARAMS, FX_GROUPS, FX_PRESETS, presetValues, defaultFx } from '../audio/params.js';
 import { renderDemoTrack } from '../audio/demo-track.js';
 import { PALETTES, paletteGradient } from '../gfx/palettes.js';
@@ -7,11 +7,23 @@ import { Knob } from './knob.js';
 import { looksLikeYouTube } from './crate.js';
 import { buildStage } from './stage.js';
 import { buildPerform } from './perform.js';
-import { buildRoom } from './room.js';
 import { buildMarket, isSceneFile } from './market.js';
+import { buildMagic } from './magic.js';
+import { buildDecks } from './decks-ui.js';
 import { buildMeters } from './meters.js';
 import { attachArtwork } from './artwork.js';
 import { Lyrics, LYRIC_STYLES, LYRIC_FONT_NAMES, LYRIC_SIZES, LYRIC_POSITIONS } from './lyrics.js';
+import { ToolRegistry } from '../tools/registry.js';
+import { createClock } from '../tools/clock.js';
+import { createDesk } from '../tools/desk.js';
+import { createToolShelf } from '../tools/shelf.js';
+import { buildToolTray } from '../tools/tray.js';
+import { buildClip } from './clip.js';
+import { buildTake } from '../clip/take.js';
+import { buildControl } from './control.js';
+import { buildLyricSync } from './lyric-sync.js';
+import { watchSound } from '../audio/watchdog.js';
+import { attachLockScreen } from './lockscreen.js';
 
 // One-click looks for the Vision rack: each only touches the switches and lens knobs it names.
 const LOOK_PRESETS = [
@@ -42,10 +54,11 @@ const ICONS = {
   check: 'M5 12.5l4.5 4.5L19 7.5',
   umbrella: 'M3 12a9 9 0 0 1 18 0zm9 0v6a2 2 0 0 1-4 0M12 3v1',
   image: 'M4 5h16v14H4zm0 10 5-5 4 4 3-3 4 4M15 9h.01',
+  decks: 'M7 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 1 0 0-9zm10 0a4.5 4.5 0 1 0 0 9 4.5 4.5 0 1 0 0-9zM7 12h.01M17 12h.01M10 20h4',
 };
 
 function icon(name) {
-  const stroke = ['export', 'close', 'trash', 'volume', 'chevron', 'add', 'check', 'hide', 'umbrella', 'image'].includes(name);
+  const stroke = ['export', 'close', 'trash', 'volume', 'chevron', 'add', 'check', 'hide', 'umbrella', 'image', 'decks'].includes(name);
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('aria-hidden', 'true');
@@ -63,25 +76,47 @@ function icon(name) {
 }
 
 const hexToRgb = (hex) => hex.slice(1).match(/../g).map((h) => parseInt(h, 16)).join(', ');
+const QUALITIES = ['auto', 'low', 'medium', 'high', 'ultra'];
+const FRAME_RATES = ['auto', '30', '60', '0'];
 
 export function buildUI({ engine, analysis, renderer, registry, director, crate }) {
   const body = document.body;
   const settings = store.get('settings', {});
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let market = null;
+  const lockScreen = attachLockScreen({ engine, crate, toast });
   const saveSettings = debounce(() => store.set('settings', {
-    fx: engine.fx, room: engine.roomMix, look: renderer.look, trailOverrides: renderer.trailOverrides,
+    lookVersion: 2, fx: engine.fx, look: renderer.look, trailOverrides: renderer.trailOverrides,
     scene: market ? market.settledScene : renderer.sceneId, palette: renderer.palette.id, volume: engine.volume,
     sensitivity: analysis.sensitivity, motion: analysis.motion, auto: director.enabled,
+    rackCollapsed: rackChoice,
   }), 300);
+  // the rack's open or shut, as the visitor last set it with its own button; null until they do
+  let rackChoice = typeof settings.rackCollapsed === 'boolean' ? settings.rackCollapsed : null;
 
   // ── toasts ────────────────────────────────────────────────────────────────
+  // At most three at a time, and a message already up is replaced rather than stacked: on a phone
+  // a column of toasts would cover the picture they are about.
   const toasts = $('#toasts');
+  const TOAST_MAX = 3;
   function toast(message, { kind = 'info', timeout = 4200 } = {}) {
+    const text = typeof message === 'string' ? message : message?.textContent || '';
+    const live = () => [...toasts.children].filter((n) => !n.dataset.out);
+    if (text) live().filter((n) => n.dataset.text === text).forEach((n) => n.dismiss());
+    // the oldest goes first; one that waits for a task to finish (no timeout) only if nothing else can
+    for (let shown = live(); shown.length >= TOAST_MAX; shown = live()) (shown.find((n) => n.dataset.timed) || shown[0]).dismiss();
     const node = el('div', { class: `toast toast-${kind}`, role: kind === 'error' ? 'alert' : 'status' }, message);
+    node.dataset.text = text;
+    if (timeout) node.dataset.timed = '1';
+    const remove = () => {
+      if (node.dataset.out) return;
+      node.dataset.out = '1';
+      node.classList.remove('is-in');
+      setTimeout(() => node.remove(), 300);
+    };
+    node.dismiss = remove;
     toasts.append(node);
     requestAnimationFrame(() => node.classList.add('is-in'));
-    const remove = () => { node.classList.remove('is-in'); setTimeout(() => node.remove(), 300); };
     if (timeout) setTimeout(remove, timeout);
     return remove;
   }
@@ -136,9 +171,9 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     btn.refresh = () => btn.setAttribute('aria-pressed', String(!!get()));
     return btn;
   }
-  function cycle(label, options, get, set) {
+  function cycle(label, options, get, set, { title } = {}) {
     const value = el('span', { class: 'cycle-value' }, options[get()]);
-    const btn = el('button', { class: 'cycle', type: 'button', title: `${label}: click to change` }, el('span', { class: 'cycle-label' }, label), value);
+    const btn = el('button', { class: 'cycle', type: 'button', title: title ? `${label}: ${title}` : `${label}: click to change` }, el('span', { class: 'cycle-label' }, label), value);
     btn.addEventListener('click', (e) => {
       const dir = e.shiftKey ? -1 : 1;
       set((get() + dir + options.length) % options.length);
@@ -184,7 +219,9 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     activePreset = 'mine';
     setActive(presetRow, (b) => b.dataset.preset === 'mine');
   } }, el('span', {}, 'Store'));
-  presetRow.append(mine, storeBtn);
+  // the same as the deck's export button, which a phone has no room for: here it is on every screen
+  const exportKey = el('button', { class: 'key key-ghost key-icon', type: 'button', title: 'Save the track with this sound as a WAV file (E)', onclick: () => exportEdit() }, icon('export'), el('span', {}, 'Export WAV'));
+  presetRow.append(mine, storeBtn, exportKey);
 
   function fxKnob(id) {
     const def = FX_PARAMS[id];
@@ -221,14 +258,12 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     ambienceSource.classList.toggle('is-active', !!f);
   });
 
-  const room = buildRoom({ engine, lcdShow, saveSettings });
-
   const knobRow = el('div', { class: 'knob-row' });
   for (const g of FX_GROUPS) {
     const ids = Object.keys(FX_PARAMS).filter((id) => FX_PARAMS[id].group === g);
     const items = ids.map(fxKnob);
     if (g === 'Varispeed') items.push(pitchLock);
-    if (g === 'Ambience') items.push(ambienceSource, room.node);
+    if (g === 'Ambience') items.push(ambienceSource);
     knobRow.append(group(g, ...items));
   }
   soundUnit.append(presetRow, knobRow);
@@ -255,7 +290,7 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     e.preventDefault();
   }, { passive: false });
   const autoBtn = toggle('Auto', () => director.enabled, (v) => { director.enabled = v; }, { title: 'Let the show change scenes by itself' });
-  const marketBtn = el('button', { class: 'key key-market', type: 'button', title: 'Browse, try and add scenes (K)', onclick: () => toggleMarket() }, icon('add'), el('span', {}, 'Market'));
+  const marketBtn = el('button', { class: 'key key-market', type: 'button', title: 'Browse, try and add scenes (K)', onclick: () => openMarketShelf('scenes') }, icon('add'), el('span', {}, 'Market'));
   const sceneBar = el('div', { class: 'scene-bar' }, sceneRow, marketBtn, autoBtn);
 
   let shownScene = null;
@@ -276,6 +311,12 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     if (!renderer.scene?.custom) return;
     store.set('probation', renderer.sceneId);
     probation = 3;
+  }
+  // Removes a request that has been carried out (?scene=, ?tool=) from the address, keeping the rest.
+  function forgetLink(name) {
+    const u = new URL(location.href);
+    u.searchParams.delete(name);
+    history.replaceState(history.state, '', u.pathname + u.search + u.hash);
   }
   function selectScene(id) {
     market?.cancelTry();
@@ -365,13 +406,17 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   // ── lyrics ────────────────────────────────────────────────────────────────
   const lyrics = new Lyrics({ engine, renderer, toast });
   const lyricsStatus = $('#lyrics-status');
+  let toldNoLyrics = false;                                           // once a visit: the crate's lyrics line says it every time
   lyrics.onStatus = (state, text) => {
     lyricsStatus.textContent = text;
     lyricsStatus.classList.toggle('is-synced', state === 'synced');
     if (state === 'synced') lcdShow('lyrics', 'SYNCED ✓');
     else if (state === 'none' || state === 'plain') {
       lcdShow('lyrics', 'NOT FOUND');
-      if (engine.track?.source !== 'demo') toast('No timed lyrics for this track. In the crate: search “artist - song”, drop an .lrc file, or paste LRC.', { timeout: 6000 });
+      if (engine.track?.source !== 'demo' && !toldNoLyrics) {
+        toldNoLyrics = true;
+        toast('No timed lyrics for this track. In the crate: search “artist - song”, drop an .lrc file, or paste LRC.', { timeout: 6000 });
+      }
     } else if (state === 'error') toast(`Lyrics: ${text}`, { kind: 'error', timeout: 6000 });
   };
   $('#lyrics-form').addEventListener('submit', (e) => {
@@ -385,6 +430,8 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   lrcApply.addEventListener('click', () => {
     if (lyrics.setLrc(lrcText.value, 'pasted LRC')) { lrcText.hidden = true; lrcApply.hidden = true; }
   });
+  const lyricSync = buildLyricSync({ engine, lyrics, toast, lcdShow, openCrate: (v) => openCrate(v) });
+  $('#lyrics-tap').addEventListener('click', () => lyricSync.open());
   const lyricControls = group('Lyrics',
     toggle('Show', () => lyrics.prefs.enabled, (v) => lyrics.setPref('enabled', v)),
     cycle('Style', LYRIC_STYLES, () => lyrics.prefs.style, (v) => lyrics.setPref('style', v)),
@@ -425,7 +472,8 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
       ),
       group('Switches',
         cycle('Symmetry', SYMMETRY_MODES, () => renderer.look.symmetry, (v) => { renderer.look.symmetry = v; }),
-        cycle('Quality', ['Low', 'Medium', 'High', 'Ultra'], () => ['low', 'medium', 'high', 'ultra'].indexOf(renderer.look.quality), (v) => renderer.setQuality(['low', 'medium', 'high', 'ultra'][v])),
+        cycle('Quality', ['Auto', 'Low', 'Medium', 'High', 'Ultra'], () => Math.max(0, QUALITIES.indexOf(renderer.look.quality)), (v) => renderer.setQuality(QUALITIES[v]), { title: 'Auto: full quality on a computer; on a phone, as sharp as it can draw without getting hot' }),
+        cycle('Frame rate', ['Auto', '30', '60', 'Max'], () => Math.max(0, FRAME_RATES.indexOf(String(renderer.look.fps ?? 'auto'))), (v) => { renderer.look.fps = FRAME_RATES[v]; }, { title: 'Auto: every frame on a computer; 30 on a phone (15 while paused) to keep it cool' }),
         toggle('Particles', () => renderer.look.particles, (v) => { renderer.look.particles = v; }),
         toggle('Scanlines', () => renderer.look.scanlines, (v) => { renderer.look.scanlines = v; }),
         toggle('Glitch', () => renderer.look.glitch, (v) => { renderer.look.glitch = v; }, { title: 'Tear the picture on strong beats' }),
@@ -436,38 +484,77 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     ),
   );
 
+  // ── tools: the market's second shelf, played on a desk over the stage ────────
+  const toolRegistry = new ToolRegistry();
+  const desk = createDesk({ registry: toolRegistry, engine, analysis, renderer, clock: createClock(engine), lcdShow, toast, icon, reduceMotion });
+  const toolShelf = createToolShelf({ registry: toolRegistry, desk, toast, icon });
+  toolRegistry.init().then(() => desk.restore()).then(() => {
+    // a link from a tool's page: /?tool=studio
+    const id = new URLSearchParams(location.search).get('tool');
+    if (id && toolRegistry.entry(id)) desk.open(id).then((o) => { if (o) forgetLink('tool'); });
+  });
+
+  // If the sound drops out, the watchdog says why, and what was done just before it.
+  let lastAction = null;
+  toolRegistry.addEventListener('desk', (e) => {
+    const name = toolRegistry.catalog.find((t) => t.id === e.detail.id)?.name || e.detail.id;
+    lastAction = { at: performance.now(), what: `${name} ${e.detail.open ? 'opened' : 'closed'}` };
+  });
+  const sound = watchSound(engine, { toast, lastAction: () => lastAction });
+
   // ── market ────────────────────────────────────────────────────────────────
-  market = buildMarket({ registry, renderer, analysis, director, selectScene, toast, lcdShow, icon });
+  market = buildMarket({ registry, renderer, analysis, director, selectScene, toast, lcdShow, icon, toolShelf });
   registry.addEventListener('change', () => { renderSceneRow(); syncSceneRow(); });
   function toggleMarket() {
     if (!market.isOpen && !roomForBoth()) openCrate(false);           // otherwise the two drawers bury the stage between them
     market.toggle();
   }
+  // The rack's own buttons open the shelf they belong to; pressing one again closes the drawer.
+  function openMarketShelf(which) {
+    if (market.isOpen && market.shelf === which) return market.open(false);
+    if (!market.isOpen && !roomForBoth()) openCrate(false);
+    market.openShelf(which);
+  }
 
   // ── rack tabs / collapse ──────────────────────────────────────────────────
   const rack = $('#rack');
-  const units = { sound: soundUnit, vision: visionUnit, perform: $('#unit-perform'), stage: $('#unit-stage') };
+  const units = { sound: soundUnit, vision: visionUnit, perform: $('#unit-perform'), stage: $('#unit-stage'), clip: $('#unit-clip'), control: $('#unit-control') };
+  const tabStrip = $('.rack-tabs');
   function showUnit(name) {
     for (const [k, u] of Object.entries(units)) u.hidden = k !== name;
     document.querySelectorAll('.rack-tabs .tab').forEach((tab) => {
       const on = tab.dataset.unit === name;
       tab.classList.toggle('is-active', on);
       tab.setAttribute('aria-selected', String(on));
+      if (on) revealTab(tab);
     });
     if (name === 'vision') syncSceneRow();                            // the strip could not centre itself while it was hidden
   }
-  document.querySelectorAll('.rack-tabs .tab').forEach((tab) => tab.addEventListener('click', () => { showUnit(tab.dataset.unit); rack.classList.remove('is-collapsed'); }));
-  const setRackCollapsed = (v) => {
+  // On a phone the tabs scroll sideways: a chosen tab is brought fully into view, clear of the fade.
+  function revealTab(tab) {
+    if (tabStrip.scrollWidth <= tabStrip.clientWidth) return;
+    const s = tabStrip.getBoundingClientRect(), r = tab.getBoundingClientRect();
+    if (r.left < s.left) tabStrip.scrollLeft -= s.left - r.left + 8;
+    else if (r.right > s.right - 24) tabStrip.scrollLeft += r.right - s.right + 24;
+  }
+  // Collapsed at first on a phone, upright or on its side, so the picture is what it shows; after
+  // that, however the visitor last left it with the chevron, the rack button or R.
+  const smallScreen = matchMedia('(max-width: 640px), (max-height: 500px)');
+  const setRackCollapsed = (v, { save = false } = {}) => {
     rack.classList.toggle('is-collapsed', v);
     $('#rack-toggle').setAttribute('aria-label', v ? 'Expand the rack' : 'Collapse the rack');
+    if (save) { rackChoice = v; saveSettings(); }
   };
+  const toggleRack = () => setRackCollapsed(!rack.classList.contains('is-collapsed'), { save: true });
+  smallScreen.addEventListener('change', (e) => { if (rackChoice === null) setRackCollapsed(e.matches); });   // turned on its side
+  document.querySelectorAll('.rack-tabs .tab').forEach((tab) => tab.addEventListener('click', () => { showUnit(tab.dataset.unit); setRackCollapsed(false); }));
   $('#rack-toggle').append(icon('chevron'));
-  $('#rack-toggle').addEventListener('click', () => setRackCollapsed(!rack.classList.contains('is-collapsed')));
+  $('#rack-toggle').addEventListener('click', toggleRack);
 
   // ── deck (transport) ──────────────────────────────────────────────────────
   const playBtn = $('#btn-play');
   const setIcon = (btn, name) => { btn.replaceChildren(icon(name)); };
-  const iconButtons = { 'btn-prev': 'prev', 'btn-next': 'next', 'btn-loop': 'loop', 'btn-crate': 'crate', 'btn-rack': 'rack', 'btn-hide': 'hide', 'btn-full': 'full', 'btn-export': 'export', 'crate-close': 'close', 'market-close': 'close', 'hero-close': 'close' };
+  const iconButtons = { 'btn-prev': 'prev', 'btn-next': 'next', 'btn-loop': 'loop', 'btn-crate': 'crate', 'btn-rack': 'rack', 'btn-hide': 'hide', 'btn-full': 'full', 'btn-export': 'export', 'btn-dj': 'decks', 'crate-close': 'close', 'market-close': 'close', 'hero-close': 'close' };
   for (const [id, name] of Object.entries(iconButtons)) { const b = document.getElementById(id); if (b) b.append(icon(name)); }
   $('#btn-rec').prepend(icon('rec'));
   $('#vol-icon').append(icon('volume'));
@@ -485,6 +572,8 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   engine.addEventListener('failure', (e) => toast(e.detail, { kind: 'error', timeout: 7000 }));
 
   playBtn.addEventListener('click', () => {
+    if (engine.decks && decks.exitIfIdle?.()) return;                 // an empty DJ mode is left, not played into
+    if (engine.decks) return engine.decks.toggleOnAir();
     if (engine.live) return engine.stopLive();
     if (!engine.track) return openCrate(true);
     engine.toggle();
@@ -505,28 +594,48 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   let scrubbing = false;
   const seekAt = (e) => {
     const r = seek.getBoundingClientRect();
+    if (r.width < 1 || !engine.duration) return;                      // a bar laid out at no width would seek to the end
     engine.seek(clamp((e.clientX - r.left) / r.width, 0, 1) * engine.duration);
   };
   seek.addEventListener('pointerdown', (e) => { scrubbing = true; seek.setPointerCapture(e.pointerId); seekAt(e); });
-  seek.addEventListener('pointermove', (e) => scrubbing && seekAt(e));
-  seek.addEventListener('pointerup', () => { scrubbing = false; });
+  seek.addEventListener('pointermove', (e) => scrubbing && e.buttons !== 0 && seekAt(e));
+  // A scrub ends however the pointer goes: lifted, taken by the system (a call, a gesture), or lost.
+  // Left on, it would freeze the bar and keep the controls from ever fading.
+  const endScrub = () => { scrubbing = false; };
+  for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) seek.addEventListener(type, endScrub);
   seek.addEventListener('keydown', (e) => {
     const map = { ArrowLeft: -5, ArrowRight: 5, PageDown: -30, PageUp: 30 };
-    if (e.key in map) { engine.seek(engine.currentTime + map[e.key]); e.preventDefault(); }
+    if (e.key in map) { engine.seek(engine.currentTime + map[e.key]); e.preventDefault(); e.stopPropagation(); }   // not the page's arrows too
   });
 
   const vol = $('#vol');
-  vol.value = settings.volume ?? 0.85;
+  // iOS: the phone's own buttons are the volume (see engine.js), so the slider would only lie
+  if (isIOS) vol.closest('.vol').hidden = true;
+  vol.value = isIOS ? 1 : settings.volume ?? 0.85;
   engine.setVolume(Number(vol.value));
   vol.addEventListener('input', () => { engine.setVolume(Number(vol.value)); lcdShow('volume', `${Math.round(vol.value * 100)}%`); saveSettings(); });
 
+  // Safari spells fullscreen with a prefix, and an iPhone has none for a page at all: there the
+  // button says how to get a full-screen show (from the home screen), and an app opened from the
+  // home screen is full screen already, so it has no button.
+  const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const fsAvailable = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+  const standalone = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
+  if (standalone && !fsAvailable) $('#btn-full').hidden = true;
   $('#btn-full').addEventListener('click', toggleFullscreen);
   function toggleFullscreen() {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else document.documentElement.requestFullscreen().catch(() => toast('Fullscreen is not available here.'));
+    if (fsElement()) { (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); return; }
+    if (!fsAvailable) {
+      toast(standalone ? 'This is full screen already.' : isIOS ? 'For a full-screen show on iPhone: tap Share, then “Add to Home Screen”, and open Visulaserz from there.' : 'Fullscreen is not available in this browser.', { timeout: 8000 });
+      return;
+    }
+    const root = document.documentElement;
+    try {
+      Promise.resolve((root.requestFullscreen || root.webkitRequestFullscreen).call(root)).catch(() => toast('Fullscreen is not available here.'));
+    } catch { toast('Fullscreen is not available here.'); }
   }
   $('#btn-hide').addEventListener('click', () => setHidden(true));
-  $('#btn-rack').addEventListener('click', () => { setRackCollapsed(!rack.classList.contains('is-collapsed')); });
+  $('#btn-rack').addEventListener('click', toggleRack);
 
   // ── now playing / hero ────────────────────────────────────────────────────
   const hero = $('#hero');
@@ -541,6 +650,7 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     document.title = `${track.title} — Visulaserz`;
     hero.classList.add('is-gone');
     renderQueue();
+    showTheShow();
   });
   engine.addEventListener('live', () => {
     refreshPlay();
@@ -552,10 +662,23 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     document.title = `${engine.liveLabel} — Visulaserz`;
     hero.classList.add('is-gone');
     renderQueue();
+    showTheShow();
   });
+  // On a phone the crate covers the whole picture: once a track has really started (a failed
+  // download never gets here, so its message stays in view), it gets out of the way.
+  function showTheShow() {
+    if (phoneCrate.matches && crateEl.classList.contains('is-open')) openCrate(false);
+  }
+  // The hero lives in the stage above the rack, however tall the rack is (style.css: .hero).
+  const placeHero = () => {
+    if (hero.classList.contains('is-gone')) return;
+    document.documentElement.style.setProperty('--stage-bottom', `${Math.max(0, Math.round(innerHeight - rack.getBoundingClientRect().top))}px`);
+  };
+  new ResizeObserver(placeHero).observe(rack);
+  addEventListener('resize', placeHero);
   hero.querySelector('[data-action="demo"]').addEventListener('click', playDemo);
   hero.querySelector('[data-action="files"]').addEventListener('click', () => fileInput.click());
-  hero.querySelector('[data-action="crate"]').addEventListener('click', () => openCrate(true));
+  hero.querySelector('[data-action="crate"]').addEventListener('click', () => openCrate(true, { focus: true }));
 
   let demoTrack = null;
   async function playDemo() {
@@ -570,13 +693,20 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   // ── crate ─────────────────────────────────────────────────────────────────
   const crateEl = $('#crate');
   const roomForBoth = () => window.innerWidth >= 1600;                   // two drawers, and still a stage and a strip between them
-  const openCrate = (open) => {
+  // where the crate covers the picture (a phone, a touch tablet): it does not open by itself there
+  const phoneCrate = matchMedia('(max-width: 640px), (pointer: coarse)');
+  // The search field takes the caret only when the crate was opened from the keyboard (C) on a
+  // computer: anywhere else it would swallow the next keys, and on a phone pop up the keyboard.
+  const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
+  const openCrate = (open, { focus = false } = {}) => {
     if (open && market?.isOpen && !roomForBoth()) market.open(false);
     crateEl.classList.toggle('is-open', open);
     crateEl.setAttribute('aria-hidden', String(!open));
-    if (open) $('#yt-input').focus({ preventScroll: true });
+    body.classList.toggle('crate-open', open);                        // for the CSS (account.css), instead of a :has() it must re-check on every change
+    if (open && focus && finePointer.matches) $('#yt-input').focus({ preventScroll: true });
+    else if (!open && crateEl.contains(document.activeElement)) document.activeElement.blur();
   };
-  $('#btn-crate').addEventListener('click', () => openCrate(!crateEl.classList.contains('is-open')));
+  $('#btn-crate').addEventListener('click', () => openCrate(!crateEl.classList.contains('is-open'), { focus: true }));
   $('#crate-close').addEventListener('click', () => openCrate(false));
   crateEl.querySelector('[data-action="files"]').addEventListener('click', () => fileInput.click());
   crateEl.querySelector('[data-action="demo"]').addEventListener('click', playDemo);
@@ -590,18 +720,41 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   const jobEl = $('#yt-job');
   crate.addEventListener('youtube', () => {
     const { available, reason } = crate.youtube;
+    // A line the admin desk put up for every visitor: shown once in each browser.
+    if (crate.notice && store.get('noticeSeen', '') !== crate.notice.id) {
+      store.set('noticeSeen', crate.notice.id);
+      toast(crate.notice.text, { kind: crate.notice.kind === 'warn' ? 'error' : 'info', timeout: 12000 });
+    }
     // The web edition has no YouTube loader at all: it plays files from the visitor's device.
     body.classList.toggle('is-hosted', crate.hosted);
     $('#hosted-note').hidden = !crate.hosted;
-    if (crate.hosted) hero.querySelector('.hero-line').textContent = 'Drop a track or start with the demo. Your files never leave this device.';
+    $('#temporary-audio-note').hidden = !crate.temporary && !crate.persistentAudio;
+    $('#temporary-audio-note').textContent = crate.persistentAudio
+      ? 'Your audio stays in your library until you remove it.'
+      : 'Audio stays while selected, including when paused. Switching tracks or signing out clears it.';
+    if (crate.hosted) hero.querySelector('.hero-line').textContent = phoneCrate.matches ? 'Open a song from this phone or start with the demo. Your files never leave it.' : 'Drop a track or start with the demo. Your files never leave this device.';
     ytHint.textContent = available ? '' : reason;
     ytHint.hidden = available || !reason;
     ytInput.disabled = !available;
     ytForm.querySelector('button').disabled = !available;
-    ytInput.placeholder = available ? 'YouTube link, or a song to search for' : 'YouTube is unavailable';
+    syncYouTubeField();
   });
+  // On the hosted site YouTube needs a (free) account: a guest is told so in the field itself,
+  // and Load opens the sign-in instead of failing after the search.
+  const isGuest = () => document.documentElement.dataset.account === 'guest';
+  function syncYouTubeField() {
+    ytInput.placeholder = !crate.youtube.available ? 'YouTube is unavailable' : isGuest() ? 'Sign in to play any song from YouTube' : 'YouTube link, or a song to search for';
+    ytForm.querySelector('button').textContent = crate.youtube.available && isGuest() ? 'Sign in' : 'Load';
+  }
+  window.addEventListener('visulaserz:account', syncYouTubeField);
+  // a phone has no files to drop: the hero says what a thumb can do
+  if (phoneCrate.matches) hero.querySelector('.hero-line').textContent = 'Pick a song, open one from this phone, or start with the demo.';
   ytForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (isGuest()) {
+      window.dispatchEvent(new CustomEvent('visulaserz:auth-required'));
+      return;
+    }
     const q = ytInput.value.trim();
     if (!q) return;
     engine.ensureContext();
@@ -632,26 +785,31 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     );
   });
 
-  const trackRow = (track, { onPlay, onRemove, onAmbience, active = false, meta = '' }) => el('li', { class: `row ${active ? 'is-active' : ''}` },
-    el('button', { class: 'row-main', type: 'button', onclick: onPlay, title: 'Play' },
+  // In DJ mode a row loads into a deck instead: A or B, or a click for whichever deck is free.
+  const trackRow = (track, { onPlay, onRemove, onAmbience, onDeck, active = false, meta = '' }) => el('li', { class: `row ${active ? 'is-active' : ''}` },
+    el('button', { class: 'row-main', type: 'button', onclick: onDeck && engine.decks ? () => onDeck(null) : onPlay, title: onDeck && engine.decks ? 'Load into the free deck' : 'Play' },
       track.thumb ? el('img', { class: 'row-art', src: track.thumb, alt: '', loading: 'lazy' }) : el('span', { class: 'row-art row-art-empty' }, icon('play')),
       el('span', { class: 'row-text' }, el('span', { class: 'row-title' }, track.title), el('span', { class: 'row-meta' }, [track.artist, meta].filter(Boolean).join(' · '))),
     ),
+    onDeck && engine.decks ? el('span', { class: 'row-decks' }, ['A', 'B'].map((id) => el('button', { class: 'row-deck', type: 'button', title: `Load into Deck ${id}`, onclick: () => onDeck(id) }, id))) : null,
     onAmbience ? el('button', { class: 'icon-btn row-remove', type: 'button', 'aria-label': 'Use as scene sound', title: 'Loop this under the music as the scene sound (rain, wind…)', onclick: onAmbience }, icon('umbrella')) : null,
     onRemove ? el('button', { class: 'icon-btn row-remove', type: 'button', 'aria-label': 'Remove', onclick: onRemove }, icon('trash')) : null,
   );
 
-  function useAsAmbience(track) {
-    engine.setAmbienceFile(track);
-    toast(`“${track.title}” now loops under the music in scenes with sound (Rain). Level: the Ambience knob.`, { timeout: 6000 });
+  async function useAsAmbience(track) {
+    try {
+      await engine.setAmbienceFile(track);
+      toast(`“${track.title}” now loops under the music in scenes with sound (Rain). Level: the Ambience knob.`, { timeout: 6000 });
+    } catch (error) { if (error.name !== 'AbortError') toast(error.message, { kind: 'error' }); }
   }
 
   function renderQueue() {
     const list = $('#queue');
-    list.replaceChildren(...crate.tracks.map((t, i) => trackRow(t, { active: i === crate.index && engine.track === t, onPlay: () => crate.play(i), onRemove: () => crate.remove(i), onAmbience: () => useAsAmbience(t) })));
+    list.replaceChildren(...crate.tracks.map((t, i) => trackRow(t, { active: i === crate.index && engine.track === t, onPlay: () => crate.play(i), onRemove: () => crate.remove(i), onAmbience: () => useAsAmbience(t), onDeck: (id) => decks.loadInto(id, t) })));
     $('#queue-empty').hidden = crate.tracks.length > 0;
   }
   crate.addEventListener('queue', renderQueue);
+  crate.addEventListener('error', event => toast(event.detail, { kind: 'error', timeout: 8000 }));
   crate.addEventListener('results', () => {
     const section = $('#results-section');
     section.hidden = crate.results.length === 0;
@@ -664,16 +822,40 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
         engine.ensureContext();
         try { useAsAmbience(await crate.loadYouTube(r.id, { play: false })); } catch (err) { toast(err.message, { kind: 'error', timeout: 8000 }); }
       },
+      onDeck: async (id) => {
+        try { decks.loadInto(id, await crate.loadYouTube(r.id, { play: false })); } catch (err) { toast(err.message, { kind: 'error', timeout: 8000 }); }
+      },
     })));
   });
+  // Removing a saved track deletes its audio on the server for good, so it waits a few seconds
+  // behind an Undo: the row goes at once, the track only when nobody took it back.
+  const removing = new Set();
+  function removeSavedLater(t) {
+    removing.add(t.id);
+    crate.dispatchEvent(new Event('saved'));
+    let undone = false;
+    const close = toast(el('span', {}, `Removed “${t.title.slice(0, 60)}”.`, el('span', { class: 'toast-actions' },
+      el('button', { class: 'btn', type: 'button', onclick: () => { undone = true; removing.delete(t.id); crate.dispatchEvent(new Event('saved')); close(); } }, 'Undo'))), { timeout: 6000 });
+    setTimeout(async () => {
+      if (undone) return;
+      try { await crate.removeSaved(t.id); }                          // the crate's refresh then drops it from the list
+      catch (err) {
+        removing.delete(t.id);                                        // still there: show it again
+        crate.dispatchEvent(new Event('saved'));
+        toast(err.message, { kind: 'error' });
+      }
+    }, 6000);
+  }
   crate.addEventListener('saved', () => {
     const section = $('#saved-section');
-    section.hidden = crate.saved.length === 0;
-    $('#saved').replaceChildren(...crate.saved.map((t) => trackRow(t, {
+    const list = crate.saved.filter((t) => !removing.has(t.id));
+    section.hidden = list.length === 0;
+    $('#saved').replaceChildren(...list.map((t) => trackRow(t, {
       meta: t.duration ? formatTime(t.duration) : '',
       onPlay: () => { engine.ensureContext(); crate.add(t, { play: true }); },
-      onRemove: async () => { try { await crate.removeSaved(t.id); } catch (err) { toast(err.message, { kind: 'error' }); } },
+      onRemove: () => removeSavedLater(t),
       onAmbience: () => useAsAmbience(t),
+      onDeck: (id) => decks.loadInto(id, t),
     })));
   });
 
@@ -690,6 +872,12 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     if (!e.dataTransfer?.files?.length) return;
     engine.ensureContext();
     const files = [...e.dataTransfer.files];
+    const onDeck = decks.deckAt(e.clientX, e.clientY);
+    const audio = files.find((f) => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|oga|opus|flac|m4a|aac|webm)$/i.test(f.name));
+    if (onDeck && audio) {
+      decks.loadInto(onDeck, { id: `file-dj-${Date.now()}`, source: 'file', title: audio.name.replace(/\.[^.]+$/, ''), artist: '', url: URL.createObjectURL(audio), thumb: null });
+      return;
+    }
     const image = files.find((f) => f.type.startsWith('image/'));
     if (image) setBackdrop(image);
     const lrc = files.find((f) => /\.(lrc|txt)$/i.test(f.name));
@@ -701,10 +889,37 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
 
   // ── stage pads, meters, artwork ───────────────────────────────────────────
   const stage = buildStage({ engine, analysis, renderer, toast, lcdShow });
-  const perform = buildPerform({ engine, toast, lcdShow, onFxChange: () => { refreshFxKnobs(); markCustom(); } });
+  const perform = buildPerform({ engine, toast, lcdShow, onFxChange: () => { refreshFxKnobs(); markCustom(); }, onPanic: () => desk.releaseAll() });
+  buildToolTray({ unit: $('#unit-perform'), registry: toolRegistry, desk, openShelf: () => openMarketShelf('tools'), icon });
+  const clip = buildClip({ engine, renderer, toast, lcdShow, key, cycle, toggle, group });
+  const take = buildTake({ engine, analysis, renderer, registry, lyrics, clip, toast, lcdShow, key, cycle, group });
+  const control = buildControl({ toast, lcdShow, key, group });          // MIDI, gamepads and the hand in the air
   const meters = buildMeters({ engine });
   const artwork = attachArtwork({ engine, renderer });
-  window.addEventListener('keyup', (e) => { stage.keyup(e); perform.keyup(e); });
+  const magic = buildMagic({ engine, crate, toast });                  // recommendations in the crate, and the listening history behind them
+  const decks = buildDecks({
+    engine, crate, toast, openCrate,
+    onModeChange: () => {
+      body.classList.toggle('is-dj', !!engine.decks);
+      renderQueue();
+      crate.dispatchEvent(new Event('saved'));
+      crate.dispatchEvent(new Event('results'));
+      refreshPlay();
+    },
+  });
+  $('#btn-dj').addEventListener('click', () => decks.toggle());
+  engine.addEventListener('djtrack', (e) => {
+    const t = e.detail;
+    $('#np').hidden = false;
+    $('#np-title').textContent = t.title;
+    $('#np-artist').textContent = `On air · ${t.artist || 'DJ decks'}`;
+    const art = $('#np-art');
+    art.hidden = !t.thumb;
+    if (t.thumb) art.src = t.thumb;
+    document.title = `${t.title} — Visulaserz`;
+    hero.classList.add('is-gone');
+  });
+  window.addEventListener('keyup', (e) => { desk.keyup(e); decks.keyup(e); stage.keyup(e); perform.keyup(e); });
   let cycleBeat = 0;
   let cycleClock = 0;
   let lastAmbience = null;
@@ -715,12 +930,23 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   const recBtn = $('#btn-rec');
   let recorder = null;
   let recStart = 0;
-  function toggleRecording() {
+  let recStarting = false;
+  async function toggleRecording() {
     if (recorder) {
       recorder.stop();
       return;
     }
+    if (recStarting) return;
     if (typeof MediaRecorder === 'undefined') return toast('Recording is not supported in this browser.', { kind: 'error' });
+    // A framed format is filmed at its exact pixels: the picture takes that size before the first
+    // frame is filmed, so the file has one size throughout (the preview is drawn at screen size).
+    clip.fixSize(true);
+    const size = clip.size;
+    if (size) {
+      recStarting = true;
+      for (let i = 0; i < 12 && renderer.canvas.width !== size.w; i++) await new Promise((r) => requestAnimationFrame(r));
+      recStarting = false;
+    }
     const stream = renderer.canvas.captureStream(60);
     engine.getRecordingStream().getAudioTracks().forEach((t) => stream.addTrack(t));
     const mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'].find((m) => MediaRecorder.isTypeSupported(m));
@@ -728,6 +954,8 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     try {
       recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12e6, audioBitsPerSecond: 192e3 });
     } catch (e) {
+      clip.fixSize(false);
+      stream.getVideoTracks().forEach((t) => t.stop());
       return toast(`Recording could not start: ${e.message}`, { kind: 'error' });
     }
     recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
@@ -735,6 +963,8 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
       const blob = new Blob(chunks, { type: mime });
       downloadBlob(blob, `${safeFilename(engine.track?.title || 'visulaserz')} - visulaserz.${mime.includes('mp4') ? 'mp4' : 'webm'}`);
       recorder = null;
+      clip.fixSize(false);
+      clip.recordingStopped();
       recBtn.classList.remove('is-recording');
       recBtn.setAttribute('aria-pressed', 'false');
       stream.getVideoTracks().forEach((t) => t.stop());
@@ -742,36 +972,56 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     };
     recorder.start(1000);
     recStart = performance.now();
+    clip.recordingStarted();                                           // the title card opens the video, when it is on
     recBtn.classList.add('is-recording');
     recBtn.setAttribute('aria-pressed', 'true');
     toast('Recording. Press REC again to stop and save.');
   }
   recBtn.addEventListener('click', toggleRecording);
 
-  $('#btn-export').addEventListener('click', async () => {
+  $('#btn-export').addEventListener('click', () => exportEdit());
+  let exporting = false;
+  async function exportEdit() {
+    if (engine.decks) return toast('Export renders the single player. To keep your mix, record it with REC, or leave DJ mode to export a track.', { timeout: 6000 });
     if (!engine.track) return toast('Load a track first.');
+    if (exporting) return;
+    exporting = true;
     const done = toast('Rendering your edit to WAV…', { timeout: 0 });
     try {
       const blob = await engine.exportWav();
       const preset = FX_PRESETS.find((p) => p.id === activePreset);
       const suffix = preset && preset.id !== 'original' ? preset.name.toLowerCase() : 'edit';
-      downloadBlob(blob, `${safeFilename(engine.track.title)} (${suffix}).wav`);
-      toast(engine.fx.pitchLock ? 'Saved. The export uses varispeed, so pitch follows speed.' : 'Saved.');
+      const name = `${safeFilename(engine.track.title)} (${suffix}).wav`;
+      const said = engine.fx.pitchLock ? 'Saved. The export uses varispeed, so pitch follows speed.' : 'Saved.';
+      // A phone puts downloads where nobody looks, so it also gets its share sheet (Files, Drive, a
+      // chat). The sheet has to open from a tap of its own: the one that started the render is long gone.
+      const file = isPhone && typeof File === 'function' ? new File([blob], name, { type: 'audio/wav' }) : null;
+      if (file && navigator.canShare?.({ files: [file] })) {
+        const close = toast(el('span', {}, `Your WAV is ready. `, el('span', { class: 'toast-actions' },
+          el('button', { class: 'btn btn-primary', type: 'button', onclick: () => navigator.share({ files: [file], title: name }).then(close, (e) => { if (e.name !== 'AbortError') { downloadBlob(blob, name); close(); } }) }, 'Share'),
+          el('button', { class: 'btn', type: 'button', onclick: () => { downloadBlob(blob, name); close(); toast(said); } }, 'Download'),
+        )), { timeout: 30000 });
+      } else {
+        downloadBlob(blob, name);
+        toast(said);
+      }
     } catch (e) {
       toast(e.message, { kind: 'error', timeout: 7000 });
     } finally {
       done();
+      exporting = false;
     }
-  });
+  }
 
   // ── hidden UI / cinema ────────────────────────────────────────────────────
   let idle = 0;
   let hoverUI = false;
+  const touchScreen = matchMedia('(hover: none) and (pointer: coarse)');
   const setHidden = (v) => {
     body.classList.toggle('is-hidden', v);
-    if (v) toast('Press H or move the mouse to bring the controls back.', { timeout: 2500 });
+    if (v) toast(touchScreen.matches ? 'Tap the picture to bring the controls back.' : 'Press H or move the mouse to bring the controls back.', { timeout: 2500 });
   };
-  document.querySelectorAll('.marquee, .crate, .market, .rack, .deck').forEach((panel) => {
+  document.querySelectorAll('.marquee, .crate, .market, .rack, .deck, .dj').forEach((panel) => {
     panel.addEventListener('pointerenter', () => { hoverUI = true; });
     panel.addEventListener('pointerleave', () => { hoverUI = false; });
   });
@@ -782,22 +1032,51 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
   };
   window.addEventListener('pointermove', wake, { passive: true });
   window.addEventListener('pointerdown', wake, { passive: true });
+  // A finger has no mouse to rest: a tap on the picture hides the controls, the next tap anywhere
+  // brings them back (wake, above). What the controls looked like is read before wake changes it.
+  let touchDown = null;
+  window.addEventListener('pointerdown', (e) => {
+    touchDown = e.pointerType === 'mouse' ? null : { target: e.target, hidden: body.classList.contains('is-cinema') || body.classList.contains('is-hidden') };
+  }, { capture: true, passive: true });
+  let toldTap = false;
+  renderer.canvas.addEventListener('click', () => {
+    if (!touchDown || touchDown.target !== renderer.canvas || touchDown.hidden) return;   // that tap was the one bringing them back
+    if (!(engine.track || engine.live || engine.decks)) return;      // nothing to watch yet: the hero is there
+    if (crateEl.classList.contains('is-open') || market.isOpen || decks.isOpen) return;
+    body.classList.add('is-cinema');
+    if (!toldTap) { toldTap = true; toast('Tap the picture again to bring the controls back.', { timeout: 2500 }); }
+  });
 
   // ── keyboard ──────────────────────────────────────────────────────────────
   const help = $('#help');
+  // A button keeps the focus after a mouse click, and Space would click it again (Loop, Next, a
+  // tool's switch) instead of playing. Only a button the keyboard went to (Tab) acts on Space/Enter.
+  let pointerButton = null;
+  window.addEventListener('pointerdown', (e) => { pointerButton = e.target.closest?.('button') || null; }, true);
+  window.addEventListener('keydown', (e) => { if (e.key === 'Tab') pointerButton = null; }, true);
   window.addEventListener('keydown', (e) => {
     const tag = e.target.tagName;
+    // Escape in the crate's own fields closes the crate (they would otherwise keep every key)
+    if (e.key === 'Escape' && (tag === 'INPUT' || tag === 'TEXTAREA') && crateEl.contains(e.target)) { e.target.blur(); openCrate(false); e.preventDefault(); return; }
     if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.target.classList?.contains('knob') && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
-    if ((tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) || (tag === 'A' && e.key === 'Enter')) return; // a focused button or link acts as one
+    if ((tag === 'BUTTON' && e.target !== pointerButton && (e.key === ' ' || e.key === 'Enter')) || (tag === 'A' && e.key === 'Enter')) return; // a focused button or link acts as one
+    if (control.keydown(e)) { e.preventDefault(); return; }             // Esc leaves Learn before it does anything else
+    if (desk.keydown(e)) { e.preventDefault(); wake(); return; }        // a tool that was clicked has lent itself the keyboard, and is being played: keep it in view
+    if (decks.keydown(e)) { e.preventDefault(); return; }               // the console's own keys come first while it is open
     if (stage.keydown(e)) { e.preventDefault(); return; }
     if (perform.keydown(e)) { e.preventDefault(); return; }
     const k = e.key;
     let handled = true;
-    if (k === ' ') { if (engine.track) engine.toggle(); else playDemo(); }
+    if (k === ' ') {
+      if (engine.decks && decks.exitIfIdle?.()) { /* an empty DJ mode is left, not played into */ }
+      else if (engine.decks) engine.decks.toggleOnAir();
+      else if (engine.track) engine.toggle();
+      else playDemo();
+    }
     else if (k === 'ArrowLeft') engine.seek(engine.currentTime - (e.shiftKey ? 30 : 5));
     else if (k === 'ArrowRight') engine.seek(engine.currentTime + (e.shiftKey ? 30 : 5));
-    else if (k === 'ArrowUp' || k === 'ArrowDown') { vol.value = clamp(Number(vol.value) + (k === 'ArrowUp' ? 0.05 : -0.05), 0, 1); vol.dispatchEvent(new Event('input')); }
+    else if ((k === 'ArrowUp' || k === 'ArrowDown') && !isIOS) { vol.value = clamp(Number(vol.value) + (k === 'ArrowUp' ? 0.05 : -0.05), 0, 1); vol.dispatchEvent(new Event('input')); }
     else if (/^[1-9]$/.test(k) && registry.scenes[Number(k) - 1]) selectScene(registry.scenes[Number(k) - 1].id);
     else if (k === ']') { director.step(1); selectScene(renderer.sceneId); }
     else if (k === '[') { director.step(-1); selectScene(renderer.sceneId); }
@@ -806,17 +1085,18 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     else if (k === 'a' || k === 'A') autoBtn.click();
     else if (k === 'f' || k === 'F') toggleFullscreen();
     else if (k === 'h' || k === 'H') setHidden(!body.classList.contains('is-hidden'));
-    else if (k === 'c' || k === 'C') openCrate(!crateEl.classList.contains('is-open'));
+    else if (k === 'c' || k === 'C') openCrate(!crateEl.classList.contains('is-open'), { focus: true });
     else if (k === 'k' || k === 'K') toggleMarket();
-    else if (k === 'r' || k === 'R') setRackCollapsed(!rack.classList.contains('is-collapsed'));
+    else if (k === 'r' || k === 'R') toggleRack();
     else if (k === 'l' || k === 'L') $('#btn-loop').click();
-    else if (k === 'm' || k === 'M') { vol.value = Number(vol.value) > 0 ? 0 : 0.85; vol.dispatchEvent(new Event('input')); }
+    else if (k === 'm' || k === 'M') { if (isIOS) engine.pause(); else { vol.value = Number(vol.value) > 0 ? 0 : 0.85; vol.dispatchEvent(new Event('input')); } }
     else if (k === 'n' || k === 'N') crate.next();
     else if (k === 'e' || k === 'E') $('#btn-export').click();
     else if (k === 'v' || k === 'V') toggleRecording();
-    else if (k === 'd' || k === 'D') body.classList.toggle('is-debug');
+    else if (k === 'D' && e.shiftKey) body.classList.toggle('is-debug');
+    else if (k === 'd' || k === 'D') decks.toggle();
     else if (k === '?') help.hidden = !help.hidden;
-    else if (k === 'Escape') { help.hidden = true; if (market.isOpen) market.open(false); else openCrate(false); }
+    else if (k === 'Escape') { help.hidden = true; if (market.isOpen) market.open(false); else if (crateEl.classList.contains('is-open')) openCrate(false); else if (decks.isOpen) decks.open(false); }
     else handled = false;
     if (handled) e.preventDefault();
   });
@@ -824,10 +1104,10 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
 
   // ── restore settings ──────────────────────────────────────────────────────
   if (settings.fx) { engine.setAll(settings.fx); activePreset = null; setActive(presetRow, () => false); refreshFxKnobs(); }
-  // The audio context does not exist yet, so this only records the levels; they reach the
-  // Ambience the moment it is built, on the first gesture.
-  if (settings.room) { Object.assign(engine.roomMix, settings.room); room.refresh(); }
+  // The removed room mixer's saved layers stay off; scene ambience has its own level.
   if (settings.look) Object.assign(renderer.look, settings.look);
+  // Before Auto existed everyone was saved on High, so that means "never chosen": let Auto decide.
+  if (settings.look && settings.lookVersion !== 2 && renderer.look.quality === 'high') renderer.look.quality = 'auto';
   if (settings.trailOverrides) renderer.trailOverrides = settings.trailOverrides;
   if (reduceMotion && settings.look?.reduceFlashing === undefined) renderer.look.reduceFlashing = true;
   if (settings.sensitivity) analysis.sensitivity = settings.sensitivity;
@@ -843,42 +1123,76 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
     renderer.setScene(settings.scene);
     watchCustom();
   }
+  // A link from a scene's page (/?scene=koi) puts that scene on. The address keeps the request until
+  // it has worked, so a member scene still opens after the reload that signing in does; then it goes,
+  // and a reload is an ordinary visit again.
+  const linkedScene = new URLSearchParams(location.search).get('scene');
+  if (linkedScene && registry.entry(linkedScene)) {
+    (registry.isInstalled(linkedScene) ? Promise.resolve() : registry.install(linkedScene))
+      .then(() => {
+        selectScene(linkedScene);
+        forgetLink('scene');
+        if (!engine.track) toast(`${renderer.scene.name} is on. Start the demo or drop a track to see it move.`, { timeout: 6000 });
+      })
+      .catch((e) => toast(e.message, { kind: 'error', timeout: 7000 }));
+  }
   renderer.setQuality(renderer.look.quality);
   visionUnit.querySelectorAll('.switch, .cycle').forEach((b) => b.refresh?.());
   visionUnit.querySelectorAll('.knob').forEach(() => {});
   syncSceneRow();
   for (const [k, knob] of Object.entries(trailKnobs)) knob.setValue(renderer.trail[k], { silent: true });
   applyAccent();
+  setRackCollapsed(rackChoice ?? smallScreen.matches);
   showUnit('sound');
-  openCrate(true);
+  // A computer opens with the crate out beside the stage; on a phone it would be all there is, and
+  // in a narrow window it would cover the hero's buttons, so there the hero shows instead (it has
+  // the demo, the files and the crate).
+  if (!phoneCrate.matches && innerWidth >= 1000) openCrate(true);
+  placeHero();
 
   // ── per-frame updates ─────────────────────────────────────────────────────
   const debug = $('#debug');
   let debugAcc = 0;
+  const lcdEl = $('#lcd');
+  const setText = (node, text) => { if (node.textContent !== text) node.textContent = text; };   // a write restyles the page
+  let lastPct = -1, lastLvl = -1, wasPlaying = false, stageCovered = false, coverClock = 0;
+  // where the rack starts, measured when it moves rather than every frame (a forced layout each time)
+  let viewH = innerHeight, rackTop = rack.getBoundingClientRect().top;
+  const measureStage = () => { viewH = innerHeight; rackTop = rack.getBoundingClientRect().top; };
+  new ResizeObserver(measureStage).observe(rack);
+  rack.addEventListener('transitionend', measureStage);              // it slides (transform), which is no resize
+  addEventListener('resize', measureStage);
   return {
     toast,
     lyrics,
     market,
-    tick(dt, an) {
+    magic,
+    decks,
+    desk,
+    tools: toolRegistry,
+    clip,
+    control,
+    sound,
+    // The logic runs on every animation frame, and ten times a second while the page is out of
+    // sight (main.js); the visual part runs when the picture is drawn, which on a phone is less
+    // often. A computer does both every frame.
+    get stageCovered() { return stageCovered; },
+    tick(dt, an) { this.tickLogic(dt, an); this.tickVisual(dt, an); },
+    tickLogic(dt, an) {
+      clip.tick(dt);
       market.tick();
+      magic.tick(dt);
+      decks.tick();
+      if (engine.decks && engine.playing !== body.classList.contains('is-playing')) refreshPlay();
+      // the decks and the tools make sound without the player's events: the wake lock follows them too
+      const playingNow = engine.playing;
+      if (playingNow !== wasPlaying) { wasPlaying = playingNow; lockScreen.awake(); lockScreen.where(); }
       perform.tick(dt, an);
-      if (probation > 0 && (probation -= dt) <= 0 && !renderer.gl.isContextLost()) store.set('probation', null);
-      if (!scrubbing) {
-        const d = engine.duration;
-        seekFill.style.width = `${d ? (engine.currentTime / d) * 100 : 0}%`;
-        seek.setAttribute('aria-valuenow', String(Math.round(d ? (engine.currentTime / d) * 100 : 0)));
-      }
-      tCur.textContent = formatTime(engine.currentTime);
-      tDur.textContent = formatTime(engine.duration);
-
-      meters.tick(dt, an);
-      artwork.tick(dt);
-      // lyrics live in the space above the rack, however tall the rack is right now
-      const stageH = body.classList.contains('is-cinema') || body.classList.contains('is-hidden') ? window.innerHeight : rack.getBoundingClientRect().top;
-      if (stageH !== lastStageH) { lastStageH = stageH; lyrics.stageFrac = clamp(stageH / window.innerHeight, 0.3, 1); }
-      lyrics.tick(dt, an);
-
-      if (renderer.sceneId !== shownScene) syncSceneRow();            // the Auto director or the console changed it
+      control.tick(dt);                                                // the controllers move the tools before the tools run
+      desk.tick(dt, an);                                               // after perform: it has just set the tempo the tools follow
+      take.tick();                                                     // after the tools: their bends for the next frame are in
+      // a scene on probation has to be seen drawing before it is cleared
+      if (probation > 0 && !stageCovered && (probation -= dt) <= 0 && !renderer.gl.isContextLost()) store.set('probation', null);
 
       // scene sound: follows whichever scene is showing, however it was chosen
       const ambience = renderer.scene.ambience || null;
@@ -899,28 +1213,61 @@ export function buildUI({ engine, analysis, renderer, registry, director, crate 
           nextPalette(1, { glide: 3.2 });
         }
       }
+
+      if (engine.playing && !hoverUI && !desk.hovered && !scrubbing && !crateEl.classList.contains('is-open') && !market.isOpen && !decks.isOpen) {
+        idle += dt;
+        if (idle > 3.5) body.classList.add('is-cinema');
+      }
+      // A drawer over the whole stage (the crate on a phone) hides the picture: main.js stops
+      // drawing it meanwhile. Looked at four times a second rather than every frame.
+      if ((coverClock -= dt) <= 0) {
+        coverClock = 0.25;
+        stageCovered = !recorder && innerWidth > 0 && crateEl.classList.contains('is-open') && crateEl.offsetWidth >= innerWidth * 0.9;
+      }
+      lcdHold -= dt;
+    },
+    tickVisual(dt, an) {
+      // the panels are faded out in cinema and hidden mode: nothing there to update
+      const panels = !body.classList.contains('is-cinema') && !body.classList.contains('is-hidden');
+      if (panels) {
+        if (!scrubbing) {
+          const d = engine.duration;
+          const pct = d ? (engine.currentTime / d) * 100 : 0;
+          if (Math.abs(pct - lastPct) >= 0.05) {
+            lastPct = pct;
+            seekFill.style.width = `${pct}%`;
+            seek.setAttribute('aria-valuenow', String(Math.round(pct)));
+          }
+        }
+        setText(tCur, formatTime(engine.currentTime));
+        setText(tDur, formatTime(engine.duration));
+        meters.tick(dt, an);
+      }
+      artwork.tick(dt);
+      // lyrics live in the space above the rack, however tall the rack is right now
+      const stageH = body.classList.contains('is-cinema') || body.classList.contains('is-hidden') ? viewH : rackTop;
+      if (stageH !== lastStageH) { lastStageH = stageH; lyrics.stageFrac = clamp(stageH / viewH, 0.3, 1); }
+      lyrics.tick(dt, an);
+
+      if (renderer.sceneId !== shownScene) syncSceneRow();            // the Auto director or the console changed it
       // While a palette dissolves, the desk has to travel with the rig or the two disagree.
       if (renderer.palProgress < 1) applyAccentColour();
 
-      lcdHold -= dt;
-      if (lcdHold <= 0) {
-        const name = recorder ? `● REC ${formatTime((performance.now() - recStart) / 1000)}`
-          : engine.live ? `LIVE · ${engine.liveLabel.toUpperCase()}` : `${renderer.scene.name.toUpperCase()}`;
-        const preset = FX_PRESETS.find((p) => p.id === activePreset);
-        lcdMain.textContent = `${name}  ·  ${preset ? preset.name.toUpperCase() : activePreset === 'mine' ? 'MINE' : 'CUSTOM'}`;
-      }
-      lcdSub.textContent = `${an.bpm ? `${Math.round(an.bpm)} BPM` : '— BPM'}  ${Math.round(renderer.fps)} FPS`;
-      $('#lcd').style.setProperty('--lvl', an.level.toFixed(3));
-
-      if (engine.playing && !hoverUI && !scrubbing && !crateEl.classList.contains('is-open') && !market.isOpen) {
-        idle += dt;
-        if (idle > 3.5) body.classList.add('is-cinema');
+      if (panels) {
+        if (lcdHold <= 0) {
+          const name = recorder ? `● REC ${formatTime((performance.now() - recStart) / 1000)}`
+            : engine.live ? `LIVE · ${engine.liveLabel.toUpperCase()}` : `${renderer.scene.name.toUpperCase()}`;
+          const preset = FX_PRESETS.find((p) => p.id === activePreset);
+          setText(lcdMain, `${name}  ·  ${preset ? preset.name.toUpperCase() : activePreset === 'mine' ? 'MINE' : 'CUSTOM'}`);
+        }
+        setText(lcdSub, `${an.bpm ? `${Math.round(an.bpm)} BPM` : '— BPM'}  ${Math.round(renderer.fps)} FPS`);
+        if (Math.abs(an.level - lastLvl) > 0.01) { lastLvl = an.level; lcdEl.style.setProperty('--lvl', an.level.toFixed(3)); }
       }
       if (body.classList.contains('is-debug')) {
         debugAcc += dt;
         if (debugAcc > 0.1) {
           debugAcc = 0;
-          debug.textContent = `fps ${renderer.fps.toFixed(0)}  bass ${an.bass.toFixed(2)}  mid ${an.mid.toFixed(2)}  high ${an.high.toFixed(2)}  level ${an.level.toFixed(2)}  beat ${an.beat.toFixed(2)}  #${an.beatCount}  bpm ${an.bpm.toFixed(0)}  bal ${an.balance.toFixed(2)}  ${renderer.sceneRT?.w}×${renderer.sceneRT?.h} ${renderer.hdr ? 'hdr' : 'ldr'}`;
+          debug.textContent = `fps ${renderer.fps.toFixed(0)}  bass ${an.bass.toFixed(2)}  mid ${an.mid.toFixed(2)}  high ${an.high.toFixed(2)}  level ${an.level.toFixed(2)}  beat ${an.beat.toFixed(2)}  #${an.beatCount}  bpm ${an.bpm.toFixed(0)}  bal ${an.balance.toFixed(2)}  ${renderer.sceneRT?.w}×${renderer.sceneRT?.h}${renderer.dynamicScale < 1 ? ` (${renderer.dynamicScale})` : ''} ${renderer.hdr ? 'hdr' : 'ldr'}`;
         }
       }
     },

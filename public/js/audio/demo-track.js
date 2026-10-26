@@ -123,7 +123,8 @@ export async function renderDemoTrack() {
   padFilter.frequency.linearRampToValueAtTime(2600, bars * bar);
   padFilter.connect(pump);
 
-  for (let b = 0; b < bars; b++) {
+  // One bar of notes. Called for each bar only as the render reaches it (see below).
+  function scheduleBar(b) {
     const t0 = b * bar;
     const chord = chordAt(b);
     const intro = b < 4;
@@ -176,9 +177,33 @@ export async function renderDemoTrack() {
     }
     // a snare fill into the drop and into the finale
     if (b === 3 || b === 11) for (let s = 12; s < 16; s++) noiseHit(t0 + s * (beat / 4), { type: 'bandpass', freq: 1900, amp: 0.2 + (s - 12) * 0.1, decay: 0.12 });
+    if (b === bars - 1) {
+      bassGain.gain.setValueAtTime(0.1, bars * bar);
+      bassGain.gain.linearRampToValueAtTime(0, bars * bar + 0.4);
+    }
   }
-  bassGain.gain.setValueAtTime(0.1, bars * bar);
-  bassGain.gain.linearRampToValueAtTime(0, bars * bar + 0.4);
+
+  // An offline render visits every node that exists, started or not, so the ~3,000 drum hits
+  // and pad voices made up front cost seconds of CPU before the first sound. Instead the render
+  // stops just before each bar and only then makes that bar's notes: same notes, same times,
+  // a fraction of the work. Every event lands after the stop, so nothing is late.
+  // Firefox has no offline suspend(): there, every bar goes in up front as before.
+  const LEAD = 0.05;
+  let later = [];
+  if (typeof ctx.suspend === 'function') {
+    for (let b = 1; b < bars; b++) {
+      try {
+        ctx.suspend(b * bar - LEAD).then(() => { try { scheduleBar(b); } finally { ctx.resume(); } }, () => later.push(b));
+      } catch {
+        later.push(b);
+      }
+    }
+  } else {
+    later = Array.from({ length: bars - 1 }, (_, i) => i + 1);
+  }
+  scheduleBar(0);
+  await new Promise((resolve) => setTimeout(resolve, 0)); // a refused stop says so before the render starts
+  later.sort((a, b) => a - b).forEach(scheduleBar);
 
   const rendered = await ctx.startRendering();
   return {

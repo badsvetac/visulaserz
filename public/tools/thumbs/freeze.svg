@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="grain" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff4fd8" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#ff4fd8"/>
+      <stop offset="1" stop-color="#ff4fd8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ice" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff4fd8" stop-opacity="0.2"/>
+      <stop offset="0.6" stop-color="#ff4fd8" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="18" y="26" width="284" height="112" rx="7" fill="#0c0c12" stroke="#fff" stroke-opacity="0.2"/>
+  <rect x="18" y="26" width="284" height="112" rx="7" fill="url(#ice)"/>
+  <g fill="#fff" fill-opacity="0.3"><rect x="24.0" y="46.8" width="3.0" height="70.4"/><rect x="28.2" y="45.2" width="3.0" height="73.6"/><rect x="32.4" y="55.5" width="3.0" height="53.0"/><rect x="36.6" y="59.7" width="3.0" height="44.7"/><rect x="40.8" y="57.6" width="3.0" height="48.7"/><rect x="44.9" y="61.2" width="3.0" height="41.5"/><rect x="49.1" y="64.4" width="3.0" height="35.2"/><rect x="53.3" y="61.7" width="3.0" height="40.7"/><rect x="57.5" y="62.4" width="3.0" height="39.3"/><rect x="61.7" y="64.8" width="3.0" height="34.5"/><rect x="65.9" y="63.9" width="3.0" height="36.2"/><rect x="70.1" y="64.6" width="3.0" height="34.7"/><rect x="74.3" y="63.2" width="3.0" height="37.5"/><rect x="78.4" y="68.5" width="3.0" height="27.1"/><rect x="82.6" y="67.4" width="3.0" height="29.2"/><rect x="86.8" y="64.5" width="3.0" height="34.9"/><rect x="91.0" y="40.7" width="3.0" height="82.7"/><rect x="95.2" y="52.8" width="3.0" height="58.4"/><rect x="99.4" y="52.0" width="3.0" height="59.9"/><rect x="103.6" y="57.4" width="3.0" height="49.2"/><rect x="107.8" y="55.9" width="3.0" height="52.1"/><rect x="111.9" y="58.8" width="3.0" height="46.4"/><rect x="116.1" y="66.2" width="3.0" height="31.6"/><rect x="120.3" y="63.8" width="3.0" height="36.5"/><rect x="124.5" y="60.9" width="3.0" height="42.2"/><rect x="128.7" y="63.5" width="3.0" height="37.0"/><rect x="132.9" y="64.3" width="3.0" height="35.5"/><rect x="137.1" y="65.1" width="3.0" height="33.7"/><rect x="141.3" y="62.4" width="3.0" height="39.2"/><rect x="145.4" y="62.6" width="3.0" height="38.8"/><rect x="149.6" y="67.4" width="3.0" height="29.2"/><rect x="153.8" y="67.8" width="3.0" height="28.3"/><rect x="158.0" y="39.4" width="3.0" height="85.1"/><rect x="162.2" y="50.4" width="3.0" height="63.3"/><rect x="166.4" y="56.7" width="3.0" height="50.6"/><rect x="170.6" y="58.9" width="3.0" height="46.2"/><rect x="174.8" y="60.3" width="3.0" height="43.4"/><rect x="178.9" y="63.3" width="3.0" height="37.3"/><rect x="183.1" y="59.0" width="3.0" height="45.9"/><rect x="187.3" y="63.4" width="3.0" height="37.2"/><rect x="191.5" y="62.6" width="3.0" height="38.8"/><rect x="195.7" y="61.8" width="3.0" height="40.4"/><rect x="199.9" y="69.4" width="3.0" height="25.2"/><rect x="204.1" y="67.8" width="3.0" height="28.4"/><rect x="208.3" y="65.5" width="3.0" height="33.0"/><rect x="212.4" y="66.1" width="3.0" height="31.8"/><rect x="216.6" y="67.0" width="3.0" height="30.0"/><rect x="220.8" y="69.1" width="3.0" height="25.8"/><rect x="225.0" y="38.8" width="3.0" height="86.4"/><rect x="229.2" y="52.8" width="3.0" height="58.4"/><rect x="233.4" y="54.8" width="3.0" height="54.3"/><rect x="237.6" y="58.5" width="3.0" height="47.0"/><rect x="241.8" y="58.2" width="3.0" height="47.6"/><rect x="245.9" y="57.8" width="3.0" height="48.4"/><rect x="250.1" y="62.8" width="3.0" height="38.5"/><rect x="254.3" y="66.8" width="3.0" height="30.3"/><rect x="258.5" y="65.4" width="3.0" height="33.1"/><rect x="262.7" y="67.1" width="3.0" height="29.9"/><rect x="266.9" y="66.7" width="3.0" height="30.5"/><rect x="271.1" y="66.5" width="3.0" height="31.0"/><rect x="275.3" y="67.5" width="3.0" height="29.0"/><rect x="279.4" y="65.9" width="3.0" height="32.2"/><rect x="283.6" y="65.3" width="3.0" height="33.4"/><rect x="287.8" y="68.7" width="3.0" height="26.6"/></g>
+  <g style="mix-blend-mode:screen"><rect x="255" y="34" width="14" height="96" fill="url(#grain)" opacity="0.50"/><rect x="263" y="34" width="14" height="96" fill="url(#grain)" opacity="0.57"/><rect x="269" y="34" width="14" height="96" fill="url(#grain)" opacity="0.64"/><rect x="274" y="34" width="14" height="96" fill="url(#grain)" opacity="0.71"/><rect x="248" y="34" width="14" height="96" fill="url(#grain)" opacity="0.78"/><rect x="279" y="34" width="14" height="96" fill="url(#grain)" opacity="0.85"/><rect x="259" y="34" width="14" height="96" fill="url(#grain)" opacity="0.92"/></g>
+  <rect x="292" y="27" width="2.5" height="110" fill="#fff"/>
+  <text x="24" y="40" font-family="Michroma, sans-serif" font-size="6" letter-spacing="1" fill="#ff4fd8">FROZEN</text>
+  <text x="24" y="50" font-family="Michroma, sans-serif" font-size="5.5" letter-spacing="1" fill="#d3d0c7" fill-opacity="0.5">90 MS · +12</text>
+  <rect x="18" y="146" width="164" height="24" rx="5" fill="#ff4fd8" fill-opacity="0.22" stroke="#ff4fd8"/>
+  <text x="100" y="161" text-anchor="middle" font-family="Michroma, sans-serif" font-size="7" letter-spacing="2.2" fill="#fff">FREEZE</text>
+  <g fill="none" stroke="#fff" stroke-opacity="0.3" stroke-width="1.6">
+    <circle cx="210" cy="158" r="9"/><circle cx="246" cy="158" r="9"/><circle cx="282" cy="158" r="9"/>
+  </g>
+  <g stroke="#ff4fd8" stroke-width="2" stroke-linecap="round">
+    <path d="M210 158 l-4 -6"/><path d="M246 158 l5 -5"/><path d="M282 158 l-7 2"/>
+  </g>
+</svg>

@@ -177,6 +177,103 @@
    "thumb": "thumbs/fireworks.webp"
   },
   {
+   "id": "drones",
+   "name": "Drones",
+   "group": "Show",
+   "blurb": "A drone light show over the harbour; every eight beats the swarm flies to a new picture",
+   "tags": [
+    "night",
+    "city",
+    "water",
+    "analyser",
+    "3d"
+   ],
+   "energy": 0.6,
+   "file": "drones.js",
+   "thumb": "thumbs/drones.webp"
+  },
+  {
+   "id": "mirrorball",
+   "name": "Mirrorball",
+   "group": "Show",
+   "blurb": "A mirror ball throws hundreds of spots through the haze; each spotlight colour is a band",
+   "tags": [
+    "night",
+    "intense",
+    "3d",
+    "light"
+   ],
+   "energy": 0.75,
+   "file": "mirrorball.js",
+   "thumb": "thumbs/mirrorball.webp"
+  },
+  {
+   "id": "indexed",
+   "name": "Indexed",
+   "group": "Show",
+   "blurb": "The Geiss plugin’s 256-colour flow from Winamp ’98: effect maps smear the sound, the palette colours it all",
+   "tags": [
+    "winamp",
+    "retro",
+    "psychedelic",
+    "abstract",
+    "chill"
+   ],
+   "energy": 0.55,
+   "file": "indexed.js",
+   "thumb": "thumbs/indexed.webp"
+  },
+  {
+   "id": "milk",
+   "name": "Milk",
+   "group": "Show",
+   "blurb": "Winamp’s MilkDrop feel: the wave warped into smoke, tunnels and flowers; eight presets melt into each other",
+   "tags": [
+    "winamp",
+    "retro",
+    "psychedelic",
+    "abstract",
+    "intense"
+   ],
+   "energy": 0.7,
+   "file": "milk.js",
+   "thumb": "thumbs/milk.webp"
+  },
+  {
+   "id": "superscope",
+   "name": "Superscope",
+   "group": "Show",
+   "blurb": "Winamp’s AVS: Bass Spin, Oscilloscope Star, superscopes and hard wipes between presets, sharp lines on black",
+   "tags": [
+    "winamp",
+    "retro",
+    "geometric",
+    "abstract",
+    "intense"
+   ],
+   "energy": 0.75,
+   "file": "superscope.js",
+   "thumb": "thumbs/superscope.webp"
+  },
+  {
+   "id": "festival",
+   "name": "Festival",
+   "group": "Show",
+   "blurb": "A festival main stage from inside the crowd: moving-head beams sweep the haze, lasers fan out and the LED wall plays the music’s own spectrogram",
+   "tags": [
+    "stage",
+    "concert",
+    "lights",
+    "lasers",
+    "crowd",
+    "party",
+    "energetic"
+   ],
+   "energy": 0.85,
+   "file": "festival.js",
+   "thumb": "thumbs/festival.webp"
+  },
+  {
    "id": "voyage",
    "name": "Voyage",
    "group": "Journey",
@@ -347,6 +444,77 @@
    "energy": 0.35,
    "file": "pamukkale.js",
    "thumb": "thumbs/pamukkale.webp"
+  },
+  {
+   "id": "nightflight",
+   "name": "Nightflight",
+   "group": "Journey",
+   "blurb": "The window seat over a city at night; districts shimmer by band, the wing strobe flashes on the beat",
+   "tags": [
+    "night",
+    "city",
+    "vehicle",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "nightflight.js",
+   "thumb": "thumbs/nightflight.webp"
+  },
+  {
+   "id": "nostalgia",
+   "name": "Nostalgia Drive",
+   "group": "Journey",
+   "blurb": "A night drive out of the passenger window: stars, a crescent moon, blue flower shapes in the sky, and a lobster-trap diner glowing warm by the desert road",
+   "tags": [
+    "3d",
+    "night",
+    "drive",
+    "dream",
+    "nostalgia",
+    "stars",
+    "spongebob"
+   ],
+   "energy": 0.35,
+   "file": "nostalgia.js",
+   "thumb": "thumbs/nostalgia.webp"
+  },
+  {
+   "id": "express",
+   "name": "Eastern Express",
+   "group": "Journey",
+   "blurb": "A night train across the snow, Doğu Ekspresi style: wires rising and falling past the window, a village with a minaret going by, and a glass of tea that rings with the bass",
+   "tags": [
+    "3d",
+    "train",
+    "snow",
+    "night",
+    "winter",
+    "turkish",
+    "tea",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "express.js",
+   "thumb": "thumbs/express.webp"
+  },
+  {
+   "id": "kervan",
+   "name": "Kervan",
+   "group": "Journey",
+   "blurb": "A camel caravan walks a moonlit dune crest under the Milky Way; the bass blows sand off the crests and every beat sends a shooting star",
+   "tags": [
+    "3d",
+    "desert",
+    "night",
+    "stars",
+    "caravan",
+    "journey",
+    "calm",
+    "moon"
+   ],
+   "energy": 0.3,
+   "file": "kervan.js",
+   "thumb": "thumbs/kervan.webp"
   },
   {
    "id": "aurora",
@@ -531,13 +699,14 @@
    "id": "cappadocia",
    "name": "Cappadocia",
    "group": "Vibe",
-   "blurb": "Nine dawn balloons over fairy chimneys; each burner flares with its own band",
+   "blurb": "Fairy chimneys at dawn beneath sculpted hot-air balloons; bass lifts the envelopes and kicks ignite the burners",
    "tags": [
+    "3d",
     "turkish",
-    "nature",
-    "calm"
+    "balloons",
+    "landscape"
    ],
-   "energy": 0.2,
+   "energy": 0.4,
    "file": "cappadocia.js",
    "thumb": "thumbs/cappadocia.webp"
   },
@@ -545,14 +714,14 @@
    "id": "koi",
    "name": "Koi",
    "group": "Vibe",
-   "blurb": "Koi circling under lily pads; every beat drops a ripple ring on the pond",
+   "blurb": "Five sculpted koi with patterned scales, moving fins and lily pads beneath dancing water caustics",
    "tags": [
+    "3d",
+    "fish",
     "water",
-    "nature",
-    "organic",
-    "calm"
+    "zen"
    ],
-   "energy": 0.1,
+   "energy": 0.4,
    "file": "koi.js",
    "thumb": "thumbs/koi.webp"
   },
@@ -560,13 +729,14 @@
    "id": "sema",
    "name": "Sema",
    "group": "Vibe",
-   "blurb": "Five whirling dervishes; skirts flare with the level, hall lamps show the bands",
+   "blurb": "Three whirling figures in an arched hall, with pleated robes that open to the bass and warm stage reflections",
    "tags": [
+    "3d",
     "turkish",
-    "calm",
-    "organic"
+    "dance",
+    "calm"
    ],
-   "energy": 0.35,
+   "energy": 0.45,
    "file": "sema.js",
    "thumb": "thumbs/sema.webp"
   },
@@ -588,13 +758,14 @@
    "id": "garden",
    "name": "Garden",
    "group": "Vibe",
-   "blurb": "Raked zen gravel and five stones; every beat drops a maple leaf",
+   "blurb": "Sculpted moss stones in raked sand; bass travels through the grooves and mids illuminate the moss",
    "tags": [
+    "3d",
+    "zen",
     "nature",
-    "calm",
-    "organic"
+    "calm"
    ],
-   "energy": 0.1,
+   "energy": 0.3,
    "file": "garden.js",
    "thumb": "thumbs/garden.webp"
   },
@@ -602,13 +773,14 @@
    "id": "meadow",
    "name": "Meadow",
    "group": "Vibe",
-   "blurb": "Windy field in daylight; the bass is the gust that bends the grass",
+   "blurb": "A perspective field of twelve thousand grass blades and wildflowers; bass sends wind across the hills",
    "tags": [
-    "nature",
-    "weather",
-    "calm"
+    "3d",
+    "grass",
+    "flowers",
+    "nature"
    ],
-   "energy": 0.25,
+   "energy": 0.35,
    "file": "meadow.js",
    "thumb": "thumbs/meadow.webp"
   },
@@ -616,13 +788,14 @@
    "id": "frost",
    "name": "Frost",
    "group": "Vibe",
-   "blurb": "Dendrites take the window, one arm per band, a new crystal seeded on every beat",
+   "blurb": "Faceted six-arm ice crystals with branching geometry; bass expands the lattice and treble catches each frozen edge",
    "tags": [
-    "nature",
-    "city",
-    "calm"
+    "3d",
+    "ice",
+    "crystal",
+    "winter"
    ],
-   "energy": 0.28,
+   "energy": 0.45,
    "file": "frost.js",
    "thumb": "thumbs/frost.webp"
   },
@@ -630,13 +803,14 @@
    "id": "lale",
    "name": "Lale",
    "group": "Vibe",
-   "blurb": "Tulip bed under a gold-leaf dusk; one tulip per band, each beat gusts across the row",
+   "blurb": "Three sculpted tulips with six curved petals each; bass opens the cups, melody bends their stems",
    "tags": [
+    "3d",
+    "flowers",
     "turkish",
-    "nature",
     "organic"
    ],
-   "energy": 0.35,
+   "energy": 0.4,
    "file": "lale.js",
    "thumb": "thumbs/lale.webp"
   },
@@ -644,15 +818,441 @@
    "id": "murmuration",
    "name": "Murmuration",
    "group": "Vibe",
-   "blurb": "Starlings at dusk; each row of the flock breathes on its own band, beats snap the heading",
+   "blurb": "Six thousand individual birds fold through a sunset sky; bass compresses the flock and treble changes the wingbeats",
    "tags": [
-    "nature",
-    "organic",
-    "light"
+    "3d",
+    "birds",
+    "flock",
+    "nature"
    ],
-   "energy": 0.5,
+   "energy": 0.6,
    "file": "murmuration.js",
    "thumb": "thumbs/murmuration.webp"
+  },
+  {
+   "id": "synchrony",
+   "name": "Synchrony",
+   "group": "Vibe",
+   "blurb": "Fireflies that fall into step: the louder the song, the more of them flash on the beat",
+   "tags": [
+    "nature",
+    "night",
+    "calm",
+    "science",
+    "light"
+   ],
+   "energy": 0.35,
+   "file": "synchrony.js",
+   "thumb": "thumbs/synchrony.webp"
+  },
+  {
+   "id": "infinity",
+   "name": "Infinity",
+   "group": "Vibe",
+   "blurb": "A mirror room of hanging lamps, after Kusama; every beat sends a wave out through the reflections",
+   "tags": [
+    "light",
+    "calm",
+    "3d",
+    "abstract"
+   ],
+   "energy": 0.4,
+   "file": "infinity.js",
+   "thumb": "thumbs/infinity.webp"
+  },
+  {
+   "id": "moonwake",
+   "name": "Moonwake",
+   "group": "Vibe",
+   "blurb": "A silver moon over deep rolling water; bass lifts the swell, melody lights the plankton and treble catches the reflections",
+   "tags": [
+    "ocean",
+    "moon",
+    "water",
+    "night",
+    "calm",
+    "3d"
+   ],
+   "energy": 0.3,
+   "file": "moonwake.js",
+   "thumb": "thumbs/moonwake.webp"
+  },
+  {
+   "id": "hamam",
+   "name": "Hamam",
+   "group": "Vibe",
+   "blurb": "Looking up into an Ottoman bath dome: star-shaped glass lenses burn with the spectrum, and sunbeams cut through the steam to print stars on the arches",
+   "tags": [
+    "3d",
+    "turkish",
+    "light",
+    "steam",
+    "dome",
+    "calm",
+    "warm"
+   ],
+   "energy": 0.3,
+   "file": "hamam.js",
+   "thumb": "thumbs/hamam.webp"
+  },
+  {
+   "id": "starry",
+   "name": "Yıldızlı Gece",
+   "group": "Vibe",
+   "blurb": "A starry night in thick flowing brush strokes, after Van Gogh: the sky winds round a double spiral and every star throws rings of light on the beat",
+   "tags": [
+    "painting",
+    "van gogh",
+    "stars",
+    "night",
+    "swirl",
+    "art",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "starry.js",
+   "thumb": "thumbs/starry.webp"
+  },
+  {
+   "id": "cicekli",
+   "name": "Çiçekli Gökyüzü",
+   "group": "Vibe",
+   "blurb": "The flower-cloud sky of Bikini Bottom: every flower breathes with its own band, each beat turns them all a step and sends up a burst of bubbles",
+   "tags": [
+    "sky",
+    "spongebob",
+    "flowers",
+    "cartoon",
+    "water",
+    "colourful",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "cicekli.js",
+   "thumb": "thumbs/cicekli.webp"
+  },
+  {
+   "id": "dilek",
+   "name": "Dilek Fenerleri",
+   "group": "Vibe",
+   "blurb": "Hundreds of wish lanterns rising into the night: every flame flickers with its own band, the bass swells their glow, and each beat sends a wave of light up through them",
+   "tags": [
+    "sky",
+    "night",
+    "lanterns",
+    "light",
+    "warm",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "dilek.js",
+   "thumb": "thumbs/dilek.webp"
+  },
+  {
+   "id": "gokkusagi",
+   "name": "Gökkuşağı",
+   "group": "Vibe",
+   "blurb": "A double rainbow after the storm: its seven colours are the spectrum, red with the bass and violet with the highs, and each beat makes the raindrops glint",
+   "tags": [
+    "sky",
+    "rainbow",
+    "rain",
+    "clouds",
+    "analyser",
+    "colourful",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "gokkusagi.js",
+   "thumb": "thumbs/gokkusagi.webp"
+  },
+  {
+   "id": "gunbatimi",
+   "name": "Gün Batımı",
+   "group": "Vibe",
+   "blurb": "A whole sky at sunset: a red sun sinks into a burning cloud bank, its rays pulse band by band, and every beat throws a green flash",
+   "tags": [
+    "sky",
+    "sunset",
+    "sun",
+    "clouds",
+    "warm",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "gunbatimi.js",
+   "thumb": "thumbs/gunbatimi.webp"
+  },
+  {
+   "id": "gezegen",
+   "name": "Halkalı Gezegen",
+   "group": "Vibe",
+   "blurb": "The sky of another world: a vast ringed planet rises from the haze, the mids stir its storm, and every beat sends a wave of light out through its rings",
+   "tags": [
+    "sky",
+    "planet",
+    "rings",
+    "space",
+    "moons",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "gezegen.js",
+   "thumb": "thumbs/gezegen.webp"
+  },
+  {
+   "id": "kuyruklu",
+   "name": "Kuyruklu Yıldız",
+   "group": "Vibe",
+   "blurb": "A great comet across a moonless sky: its dust tail lights striation by striation, the bass swells its head, and every beat bursts meteors from the radiant",
+   "tags": [
+    "sky",
+    "night",
+    "comet",
+    "meteors",
+    "stars",
+    "space",
+    "calm"
+   ],
+   "energy": 0.35,
+   "file": "kuyruklu.js",
+   "thumb": "thumbs/kuyruklu.webp"
+  },
+  {
+   "id": "usturlap",
+   "name": "Usturlap",
+   "group": "Vibe",
+   "blurb": "A golden astrolabe hung in the night, as at Samarkand: each sign of its zodiac ring lights with a band, and every beat swings the rule to a new star",
+   "tags": [
+    "sky",
+    "night",
+    "stars",
+    "astrolabe",
+    "astronomy",
+    "gold",
+    "geometric",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "usturlap.js",
+   "thumb": "thumbs/usturlap.webp"
+  },
+  {
+   "id": "yildizizi",
+   "name": "Yıldız İzleri",
+   "group": "Vibe",
+   "blurb": "Star trails round the pole star: the louder the song, the longer the exposure, the rings light zone by zone, and every beat sends a ring of light across them",
+   "tags": [
+    "sky",
+    "night",
+    "stars",
+    "long exposure",
+    "geometric",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "yildizizi.js",
+   "thumb": "thumbs/yildizizi.webp"
+  },
+  {
+   "id": "yazaksami",
+   "name": "Yaz Akşamı",
+   "group": "Vibe",
+   "blurb": "A summer evening like an animated film: a great tower of cloud burning orange in the setting sun, a glowing contrail, the first stars, and summer lightning on the beat",
+   "tags": [
+    "sky",
+    "clouds",
+    "sunset",
+    "anime",
+    "dreamy",
+    "warm",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "yazaksami.js",
+   "thumb": "thumbs/yazaksami.webp"
+  },
+  {
+   "id": "balina",
+   "name": "Balina",
+   "group": "Vibe",
+   "blurb": "Looking up from the deep: a humpback and her calf glide across the sunlit surface, light shafts falling through the waves, and a school of fish that flashes on the beat",
+   "tags": [
+    "ocean",
+    "underwater",
+    "whale",
+    "calm",
+    "blue",
+    "majestic",
+    "dreamy"
+   ],
+   "energy": 0.3,
+   "file": "balina.js",
+   "thumb": "thumbs/balina.webp"
+  },
+  {
+   "id": "buzmagara",
+   "name": "Buz Mağarası",
+   "group": "Vibe",
+   "blurb": "Inside a glacier ice cave: scalloped blue walls lit from within, a bright snowy mouth, a lantern on the frozen pool, and drops ringing the ice on the beat",
+   "tags": [
+    "ice",
+    "cave",
+    "winter",
+    "blue",
+    "dreamy",
+    "calm",
+    "cinematic"
+   ],
+   "energy": 0.3,
+   "file": "buzmagara.js",
+   "thumb": "thumbs/buzmagara.webp"
+  },
+  {
+   "id": "cayocagi",
+   "name": "Çay Ocağı",
+   "group": "Vibe",
+   "blurb": "A rainy night in an old Istanbul tea house: a glowing glass of tea by the window, rain on the pane, neon and a passing tram out of focus beyond",
+   "tags": [
+    "lofi",
+    "rain",
+    "cozy",
+    "istanbul",
+    "night",
+    "warm",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "cayocagi.js",
+   "thumb": "thumbs/cayocagi.webp"
+  },
+  {
+   "id": "denizfeneri",
+   "name": "Deniz Feneri",
+   "group": "Vibe",
+   "blurb": "A lighthouse on a black headland on a stormy night: its beams sweep through rain and mist, dark-teal waves burst white on the rocks, and the moon shows through torn cloud",
+   "tags": [
+    "sea",
+    "night",
+    "storm",
+    "lighthouse",
+    "moody",
+    "rain",
+    "cinematic"
+   ],
+   "energy": 0.35,
+   "file": "denizfeneri.js",
+   "thumb": "thumbs/denizfeneri.webp"
+  },
+  {
+   "id": "denizanasi",
+   "name": "Denizanası",
+   "group": "Vibe",
+   "blurb": "Glass jellyfish glowing in the black deep sea at three depths, pulsing to swim, tentacles trailing, marine snow drifting past",
+   "tags": [
+    "ocean",
+    "jellyfish",
+    "deep sea",
+    "bioluminescent",
+    "dreamy",
+    "cool",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "denizanasi.js",
+   "thumb": "thumbs/denizanasi.webp"
+  },
+  {
+   "id": "donmedolap",
+   "name": "Dönme Dolap",
+   "group": "Vibe",
+   "blurb": "A seaside fair at dusk: a great ferris wheel strung with bulbs turning over the pier, a glowing carousel, strings of lamps and the calm sea carrying it all in long wobbling reflections",
+   "tags": [
+    "fair",
+    "ferris wheel",
+    "sea",
+    "dusk",
+    "nostalgic",
+    "lights",
+    "warm",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "donmedolap.js",
+   "thumb": "thumbs/donmedolap.webp"
+  },
+  {
+   "id": "roket",
+   "name": "Fırlatma",
+   "group": "Vibe",
+   "blurb": "A rocket launch at dawn across a still lagoon: a blinding flame, a huge glowing exhaust cloud, and a trail that catches the sunlight high above",
+   "tags": [
+    "rocket",
+    "launch",
+    "dawn",
+    "sky",
+    "water",
+    "cinematic",
+    "warm"
+   ],
+   "energy": 0.35,
+   "file": "roket.js",
+   "thumb": "thumbs/roket.webp"
+  },
+  {
+   "id": "galata",
+   "name": "Galata",
+   "group": "Vibe",
+   "blurb": "Istanbul at the blue hour from a rooftop: the Galata Tower with its ring of lit windows, the old city's minarets across the Golden Horn, gulls wheeling and windows coming on one by one",
+   "tags": [
+    "city",
+    "istanbul",
+    "night",
+    "dusk",
+    "dreamy",
+    "warm",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "galata.js",
+   "thumb": "thumbs/galata.webp"
+  },
+  {
+   "id": "kamp",
+   "name": "Kamp Ateşi",
+   "group": "Vibe",
+   "blurb": "A campfire by a mountain lake at night: flames that follow the music, a glowing tent, pines, and a still lake mirroring the stars and the Milky Way",
+   "tags": [
+    "night",
+    "fire",
+    "stars",
+    "lake",
+    "mountains",
+    "cozy",
+    "warm",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "kamp.js",
+   "thumb": "thumbs/kamp.webp"
+  },
+  {
+   "id": "kutuphane",
+   "name": "Kütüphane",
+   "group": "Vibe",
+   "blurb": "An old library hall at night: moonlight shafts through a tall window, dust, warm ladder lamps, and books that fly up the nave flapping their covers like wings",
+   "tags": [
+    "library",
+    "books",
+    "moonlight",
+    "night",
+    "magic",
+    "dreamy",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "kutuphane.js",
+   "thumb": "thumbs/kutuphane.webp"
   },
   {
    "id": "vinyl",
@@ -758,13 +1358,14 @@
    "id": "pool",
    "name": "Pool",
    "group": "Things",
-   "blurb": "Sunlit pool floor with rainbow caustics; every beat drops a pebble ripple",
+   "blurb": "A tiled three-dimensional pool with refracted caustics, a striped float and bass-driven waves",
    "tags": [
+    "3d",
     "water",
-    "calm",
-    "organic"
+    "summer",
+    "reflections"
    ],
-   "energy": 0.3,
+   "energy": 0.5,
    "file": "pool.js",
    "thumb": "thumbs/pool.webp"
   },
@@ -800,13 +1401,14 @@
    "id": "kilim",
    "name": "Kilim",
    "group": "Things",
-   "blurb": "A rug woven as the track plays; the shuttle crosses on every beat",
+   "blurb": "A floating woven carpet with knotted diamonds, wool fringe and rolling bass folds",
    "tags": [
+    "3d",
+    "textile",
     "turkish",
-    "artwork",
-    "geometric"
+    "warm"
    ],
-   "energy": 0.4,
+   "energy": 0.5,
    "file": "kilim.js",
    "thumb": "thumbs/kilim.webp"
   },
@@ -814,13 +1416,14 @@
    "id": "nazar",
    "name": "Nazar",
    "group": "Things",
-   "blurb": "Evil-eye beads in a window, one band each, swaying together on a beat",
+   "blurb": "Sculpted cobalt glass, molten gold fittings and a bass-driven iris; treble catches the curved rim",
    "tags": [
+    "3d",
+    "glass",
     "turkish",
-    "night",
-    "calm"
+    "bass"
    ],
-   "energy": 0.3,
+   "energy": 0.4,
    "file": "nazar.js",
    "thumb": "thumbs/nazar.webp"
   },
@@ -837,6 +1440,120 @@
    "energy": 0.35,
    "file": "cini.js",
    "thumb": "thumbs/cini.webp"
+  },
+  {
+   "id": "ferro",
+   "name": "Ferro",
+   "group": "Things",
+   "blurb": "Black ferrofluid over a magnet that is the bass: spikes stand up on the kick and sink between",
+   "tags": [
+    "science",
+    "3d",
+    "intense",
+    "abstract"
+   ],
+   "energy": 0.7,
+   "file": "ferro.js",
+   "thumb": "thumbs/ferro.webp"
+  },
+  {
+   "id": "nixie",
+   "name": "Nixie",
+   "group": "Things",
+   "blurb": "Neon Nixie tubes count the beats, bargraph tubes are the analyser, a magic eye reads the level",
+   "tags": [
+    "retro",
+    "analyser",
+    "text",
+    "light"
+   ],
+   "energy": 0.45,
+   "file": "nixie.js",
+   "thumb": "thumbs/nixie.webp"
+  },
+  {
+   "id": "twist",
+   "name": "Twist",
+   "group": "Things",
+   "blurb": "A puzzle cube turns a face on every beat: ten moves scramble it, ten more solve it again",
+   "tags": [
+    "geometric",
+    "3d",
+    "retro"
+   ],
+   "energy": 0.5,
+   "file": "twist.js",
+   "thumb": "thumbs/twist.webp"
+  },
+  {
+   "id": "classic",
+   "name": "Classic",
+   "group": "Things",
+   "blurb": "The Winamp 2 desktop: pixel analyser with falling peaks, green LCD time, crawling title, a dancing EQ",
+   "tags": [
+    "winamp",
+    "retro",
+    "analyser",
+    "nostalgia"
+   ],
+   "energy": 0.4,
+   "file": "classic.js",
+   "thumb": "thumbs/classic.webp"
+  },
+  {
+   "id": "fener",
+   "name": "Fener",
+   "group": "Things",
+   "blurb": "Ottoman mosaic lamps in a Grand Bazaar shop, each a globe of glass chips glowing with its own band, dappling the wall in their colours",
+   "tags": [
+    "3d",
+    "turkish",
+    "lamps",
+    "glass",
+    "bokeh",
+    "warm",
+    "colourful"
+   ],
+   "energy": 0.35,
+   "file": "fener.js",
+   "thumb": "thumbs/fener.webp"
+  },
+  {
+   "id": "snowglobe",
+   "name": "Kar Küresi",
+   "group": "Things",
+   "blurb": "A snow globe with a little snowed-in Istanbul inside, the Galata Tower over lit houses; the bass shakes the snow and every beat lifts a ring of it",
+   "tags": [
+    "3d",
+    "snow",
+    "winter",
+    "turkish",
+    "istanbul",
+    "glass",
+    "cozy",
+    "calm"
+   ],
+   "energy": 0.3,
+   "file": "snowglobe.js",
+   "thumb": "thumbs/snowglobe.webp"
+  },
+  {
+   "id": "musicbox",
+   "name": "Müzik Kutusu",
+   "group": "Things",
+   "blurb": "Inside a music box: a pinned brass cylinder turns against a steel comb whose every tooth rings with its own band, bass on the left, highs on the right",
+   "tags": [
+    "3d",
+    "music box",
+    "brass",
+    "mechanical",
+    "macro",
+    "warm",
+    "spectrum"
+   ],
+   "energy": 0.3,
+   "file": "musicbox.js",
+   "thumb": "thumbs/musicbox.webp"
   },
   {
    "id": "chladni",
@@ -1077,6 +1794,82 @@
    "energy": 0.55,
    "file": "truchet.js",
    "thumb": "thumbs/truchet.webp"
+  },
+  {
+   "id": "chamber",
+   "name": "Chamber",
+   "group": "Lab",
+   "blurb": "A bubble chamber photograph: every beat is a collision, tracks curling in the magnetic field",
+   "tags": [
+    "science",
+    "abstract",
+    "retro"
+   ],
+   "energy": 0.5,
+   "file": "chamber.js",
+   "thumb": "thumbs/chamber.webp"
+  },
+  {
+   "id": "coral",
+   "name": "Coral",
+   "group": "Lab",
+   "blurb": "A living reef grown by reaction–diffusion: loud passages branch into coral, quiet ones pinch into spots",
+   "tags": [
+    "organic",
+    "science",
+    "water",
+    "nature"
+   ],
+   "energy": 0.4,
+   "file": "coral.js",
+   "thumb": "thumbs/coral.webp"
+  },
+  {
+   "id": "ink",
+   "name": "Ink",
+   "group": "Lab",
+   "blurb": "Bass drives the fluid, each kick injects a fresh plume, mids feed twin dye jets and treble curls their lit edges",
+   "tags": [
+    "fluid",
+    "bass",
+    "organic",
+    "simulation"
+   ],
+   "energy": 0.65,
+   "file": "ink.js",
+   "thumb": "thumbs/ink.webp"
+  },
+  {
+   "id": "limit",
+   "name": "Limit",
+   "group": "Lab",
+   "blurb": "Escher’s hyperbolic disc: tiles flow to the rim forever; each ring is a band, each beat a wave",
+   "tags": [
+    "geometric",
+    "science",
+    "abstract"
+   ],
+   "energy": 0.5,
+   "file": "limit.js",
+   "thumb": "thumbs/limit.webp"
+  },
+  {
+   "id": "damla",
+   "name": "Damla",
+   "group": "Lab",
+   "blurb": "Macro water: on every beat a drop hits a black pool and a crown of water leaps up, flinging droplets, while coloured lights glint through it",
+   "tags": [
+    "3d",
+    "water",
+    "macro",
+    "drop",
+    "splash",
+    "beat",
+    "colourful"
+   ],
+   "energy": 0.55,
+   "file": "damla.js",
+   "thumb": "thumbs/damla.webp"
   }
  ]
 }

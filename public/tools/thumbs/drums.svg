@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <defs>
+    <linearGradient id="pad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2a35"/>
+      <stop offset="1" stop-color="#16161d"/>
+    </linearGradient>
+    <radialGradient id="hit" cx="50%" cy="50%" r="70%">
+      <stop offset="0" stop-color="#ff4fd8" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ff4fd8" stop-opacity="0.25"/>
+    </radialGradient>
+  </defs>
+  <g font-family="Michroma, sans-serif" font-size="6.5" letter-spacing="1.1" text-anchor="middle" fill="#d3d0c7">
+    <g stroke="#fff" stroke-opacity="0.18">
+      <rect x="48" y="34" width="52" height="52" rx="6" fill="url(#pad)"/>
+      <rect x="108" y="34" width="52" height="52" rx="6" fill="url(#hit)" stroke="#ff4fd8" stroke-opacity="1"/>
+      <rect x="168" y="34" width="52" height="52" rx="6" fill="url(#pad)"/>
+      <rect x="228" y="34" width="52" height="52" rx="6" fill="url(#pad)"/>
+      <rect x="48" y="94" width="52" height="52" rx="6" fill="url(#pad)"/>
+      <rect x="108" y="94" width="52" height="52" rx="6" fill="url(#pad)"/>
+      <rect x="168" y="94" width="52" height="52" rx="6" fill="url(#pad)"/>
+      <rect x="228" y="94" width="52" height="52" rx="6" fill="url(#pad)" stroke="#ff4fd8" stroke-opacity="0.55"/>
+    </g>
+    <text x="74" y="62">KICK</text><text x="134" y="62" fill="#fff">SNARE</text><text x="194" y="62">CLAP</text><text x="254" y="62">HAT</text>
+    <text x="74" y="122">OPEN</text><text x="134" y="122">TOM</text><text x="194" y="122">BELL</text><text x="254" y="122">HORN</text>
+    <g font-family="monospace" font-size="7" fill="#8a8791" letter-spacing="0">
+      <text x="74" y="75">A</text><text x="134" y="75" fill="#fff">S</text><text x="194" y="75">D</text><text x="254" y="75">F</text>
+      <text x="74" y="135">G</text><text x="134" y="135">H</text><text x="194" y="135">J</text><text x="254" y="135">K</text>
+    </g>
+  </g>
+  <g fill="#ff4fd8"><circle cx="128" cy="162" r="3"/></g>
+  <g fill="#2a2a33"><circle cx="144" cy="162" r="3"/><circle cx="160" cy="162" r="3"/><circle cx="176" cy="162" r="3"/></g>
+  <circle cx="134" cy="60" r="34" fill="none" stroke="#ff4fd8" stroke-opacity="0.25"/>
+</svg>

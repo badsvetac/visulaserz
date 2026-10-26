@@ -1,90 +1,89 @@
-// MEADOW — a windy field in daylight, the one scene that is not night.
-//
-// Six rows of grass from the horizon to your feet. The wind is the bass: gusts roll across the
-// field as travelling waves and every blade leans with them, the near rows most of all, while a
-// beat sends one sharp gust through. Cloud shadows slide over the grass on the cruise clock, the
-// seed heads catch the treble as flecks of light, and dandelion clocks drift past.
-const frag = `
-float wind(float x, float t, float depth) {
-  return (sin(x * 1.3 - t * 1.6) * 0.6 + sin(x * 3.1 - t * 2.7 + 1.0) * 0.4) * (0.25 + 0.9 * uBass)
-       + exp(-abs(x - (uBeatAge * 5.0 - 2.5)) * 1.5) * exp(-uBeatAge * 1.2) * 1.2 * uPunch * depth;
-}
+import { SCULPT } from '../js/gfx/scene-kit.js';
 
+const frag = `${SCULPT}
 void main() {
-  vec2 p = centered();
-  float aspect = uRes.x / uRes.y;
-  float t = uTime;
-  const float HZ = 0.12;
-
-  // sky, sun, clouds
-  vec3 col = mix(vec3(0.62, 0.80, 0.95), vec3(0.20, 0.45, 0.85), ss(HZ, 1.0, p.y));
-  col = mix(col, pal(0.6) * 0.6 + 0.3, 0.12);
-  vec2 sv = p - vec2(-aspect * 0.45, 0.62);
-  col += vec3(1.0, 0.92, 0.7) * (exp(-length(sv) * 3.0) * 0.55 + (1.0 - ss(0.07, 0.08, length(sv))) * 0.9);
-  vec2 cp = vec2(p.x * 0.7 + uCruise * 0.01, p.y * 2.2);
-  float cl = ss(0.48, 0.72, fbm(cp * 1.6)) * ss(HZ + 0.05, 0.5, p.y);
-  col = mix(col, vec3(1.0, 0.99, 0.97) * (0.92 - 0.12 * fbm(cp * 3.0 + 4.0)), cl * 0.9);
-
-  // far hills
-  float hill = HZ + 0.05 + 0.07 * fbm(vec2(p.x * 1.2 + 3.0, 1.0));
-  if (p.y < hill) col = mix(vec3(0.36, 0.55, 0.42), vec3(0.62, 0.80, 0.95), 0.45);
-
-  // grass, far rows first
-  for (int k = 0; k < 6; k++) {
-    float fk = float(k);
-    float depth = (fk + 1.0) / 6.0;                                       // 0 far … 1 near
-    float rowY = mix(HZ + 0.02, -0.72, depth * depth);
-    float bladeH = mix(0.035, 0.42, depth * depth);
-    float dens = mix(90.0, 9.0, depth);
-    float xw = p.x / aspect * dens * aspect;
-    // look at this blade and its two neighbours: a leaning blade reaches into the next lane
-    for (int j = -1; j <= 1; j++) {
-      float id = floor(xw) + float(j);
-      float h1 = hash11(id * 1.7 + fk * 31.0), h2 = hash11(id * 3.3 + fk * 17.0);
-      float bx = (id + 0.2 + 0.6 * h1) / dens;
-      float hgt = bladeH * (0.6 + 0.6 * h2);
-      float y = (p.y - rowY) / hgt;                                       // 0 at the root → 1 at the tip
-      if (y < 0.0 || y > 1.0) continue;
-      float lean = wind(bx * 2.0 + fk, t, depth) * 0.35 * hgt + (h1 - 0.5) * 0.25 * hgt;
-      float cx = bx + lean * y * y;                                       // the blade bends more toward its tip
-      float halfW = (0.30 / dens) * (1.0 - y) * (0.6 + 0.5 * h2) + 0.0006;
-      float blade = 1.0 - ss(halfW * 0.7, halfW, abs(p.x - cx));
-      vec3 green = mix(vec3(0.10, 0.30, 0.06), vec3(0.45, 0.62, 0.14), y * (0.6 + 0.4 * h1));
-      green = mix(green, pal(0.35) * 0.6, 0.12);
-      green = mix(green, vec3(0.62, 0.80, 0.95) * 0.7, (1.0 - depth) * 0.45);  // aerial perspective
-      // cloud shadows drifting over the field
-      float shade = 0.62 + 0.38 * ss(0.35, 0.6, fbm(vec2(bx * 1.3 + uCruise * 0.02, depth * 3.0)));
-      // seed heads at the tips catch the light
-      float seed = ss(0.86, 1.0, y) * step(0.55, h2) * (0.3 + 2.0 * uHigh);
-      col = mix(col, green * shade + vec3(1.0, 0.95, 0.7) * seed * 0.5, blade);
-    }
-    // the ground this row stands in
-    if (p.y < rowY + 0.004) col = mix(col, mix(vec3(0.08, 0.20, 0.05), vec3(0.62, 0.80, 0.95) * 0.6, (1.0 - depth) * 0.4), 0.85);
+  musicSignals();
+  vec2 uv = centered();
+  vec3 ro = vec3(0, 1.45, 4.4), rd = viewRay(ro, vec3(0, 0.8, -5), uv, 1.9);
+  vec3 col = duskSky(rd, vec3(0.66, 0.66, 0.39), vec3(0.11, 0.28, 0.35));
+  float cloud = fbm(rd.xz * 3.0 / max(rd.y + 0.6, 0.15) + uCruise * 0.008);
+  col += vec3(0.15, 0.12, 0.055) * ss(0.53, 0.8, cloud) * ss(0.01, 0.4, rd.y);
+  if (rd.y < -0.005) {
+    float t = -ro.y / rd.y;
+    vec3 p = ro + rd * t;
+    vec3 earth = mix(vec3(0.04, 0.11, 0.024), vec3(0.22, 0.28, 0.059), noise(p.xz * 2.0));
+    col = mix(earth, col, 1.0 - exp(-t * 0.036));
   }
-
-  // dandelion clocks on the wind
-  for (int i = 0; i < 9; i++) {
-    float fi = float(i);
-    float life = fract(hash11(fi * 2.1 + 1.0) + uTravel * 0.006 * (0.6 + hash11(fi * 4.0)));
-    vec2 dc = vec2(mix(-aspect - 0.1, aspect + 0.1, life), -0.2 + 0.7 * hash11(fi * 6.3) + 0.06 * sin(life * 20.0 + fi));
-    vec2 dv = p - dc;
-    float spokes = 0.6 + 0.4 * abs(cos(atan(dv.y, dv.x) * 6.0));
-    col += vec3(1.0) * (1.0 - ss(0.0, 0.016 * spokes, length(dv))) * 0.55;
-  }
-  col *= 0.80 + 0.15 * uLevel;
-  outColor = vec4(col, 1.0);
+  outColor = vec4(col, 1);
 }`;
-
+const vert = `${SCULPT}
+void main() {
+  musicSignals();
+  float id = float(gl_VertexID);
+  float seed = hash11(id * 1.31 + 2.0);
+  // Back-to-front depth order makes translucent blades and flowers overlap correctly.
+  float z = mix(-25.0, 2.8, id / uPointCount);
+  float x = (hash11(id * 4.71 + 1.0) - 0.5) * 27.0;
+  float height = 0.4 + seed * 0.75;
+  float gust = sin(x * 0.65 + z * 0.7 - uTravel * 1.5);
+  float wind = gust * (0.12 + gBass * 0.32) + sin(z - uBeatAge * 4.0) * exp(-uBeatAge * 1.4) * uAudioActive * uPunch * 0.18;
+  float flower = step(0.91, hash11(id * 6.71));
+  float pollen = step(0.973, hash11(id * 8.61));
+  vec3 p = vec3(x + wind * 0.5, height * 0.5, z);
+  if (pollen > 0.5) { p.y += 0.7 + seed * 1.6 + sin(uTime * 0.7 + id) * 0.2; p.x += sin(uCruise + id) * 0.3; }
+  vec3 ro = vec3(0, 1.45, 4.4), at = vec3(0, 0.8, -5);
+  vec3 f = normalize(at - ro), r = normalize(cross(f, vec3(0, 1, 0))), up = cross(r, f);
+  vec3 v = p - ro; float depth = dot(v, f);
+  vec2 uv = vec2(dot(v, r), dot(v, up)) * 1.9 / max(depth, 0.1);
+  gl_Position = vec4(uv / vec2(uRes.x / uRes.y, 1), 0, 1);
+  gl_PointSize = clamp(height * 1.9 / max(depth, 0.1) * uRes.y, 2.0, uPointMax);
+  float fog = 1.0 - exp(-depth * 0.028);
+  vec3 c = mix(vec3(0.09, 0.22, 0.026), vec3(0.38, 0.43, 0.08), seed);
+  c *= 0.83 + gMid * 0.28;
+  c = mix(c, vec3(0.46, 0.48, 0.25), fog);
+  vColor = vec4(c, 0.94);
+  vShape = flower * 10.0 + seed * 2.0 + 3.0 + wind;
+  if (pollen > 0.5) {
+    vShape = 25.0;
+    gl_PointSize = clamp((4.0 + gHigh * 8.0) * 4.0 / max(depth, 1.0) * uPointScale, 1.0, 10.0);
+    vColor = vec4(0.9, 0.76, 0.37, 0.10 + gHigh * 0.7);
+  }
+}`;
+const pointFrag = `
+void main() {
+  vec2 p = gl_PointCoord * 2.0 - 1.0;
+  if (vShape > 20.0) {
+    float a = exp(-dot(p, p) * 3.0) * vColor.a;
+    outColor = vec4(vColor.rgb * a, a); return;
+  }
+  float flower = step(10.0, vShape), seed = fract(vShape * 3.71);
+  float bend = mod(vShape, 10.0) - 4.0;
+  float y = -p.y;
+  float curve = bend * 0.22 * pow(clamp(y * 0.5 + 0.5, 0.0, 1.0), 2.0);
+  float width = mix(0.039, 0.005, clamp(y * 0.5 + 0.5, 0.0, 1.0));
+  float stem = 1.0 - smoothstep(width, width + 0.026, abs(p.x - curve));
+  stem *= 1.0 - smoothstep(0.84, 0.96, abs(y));
+  vec3 col = vColor.rgb;
+  float alpha = stem;
+  if (flower > 0.5) {
+    vec2 q = p - vec2(bend * 0.22 * 0.81, -0.72);
+    float a = atan(q.y, q.x), r = length(q);
+    float petal = 0.11 + 0.05 * pow(abs(cos(a * 5.0)), 1.7);
+    float bloom = 1.0 - smoothstep(petal, petal + 0.024, r);
+    vec3 petalColor = seed > 0.5 ? vec3(0.93, 0.81, 0.49) : vec3(0.62, 0.46, 0.71);
+    petalColor = mix(petalColor, vec3(0.66, 0.37, 0.035), 1.0 - smoothstep(0.025, 0.057, r));
+    col = mix(col, petalColor, bloom);
+    alpha = max(alpha, bloom);
+  } else {
+    float ear = abs(p.x - curve - sin(y * 85.0) * 0.033);
+    alpha = max(alpha, (1.0 - smoothstep(0.013, 0.041, ear)) * smoothstep(0.25, 0.4, y) * (1.0 - smoothstep(0.68, 0.87, y)));
+  }
+  alpha *= vColor.a;
+  outColor = vec4(col * alpha, alpha);
+}`;
 export default {
-  id: 'meadow',
-  name: 'Meadow',
-  group: 'Vibe',
-  blurb: 'Windy field in daylight; the bass is the gust that bends the grass',
-  tags: ['nature', 'weather', 'calm'],
-  energy: 0.25,
-  particles: 0,
-  trails: 0.05,
-  zoom: 1,
-  spin: 0,
-  frag,
+  id: 'meadow', name: 'Meadow', group: 'Vibe',
+  blurb: 'A perspective field of twelve thousand grass blades and wildflowers; bass sends wind across the hills',
+  tags: ['3d', 'grass', 'flowers', 'nature'], energy: 0.35, particles: 0, trails: 0, zoom: 1, spin: 0,
+  frag, points: { count: 12000, vert, frag: pointFrag, blend: 'alpha' },
 };

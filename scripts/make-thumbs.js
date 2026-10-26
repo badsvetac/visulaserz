@@ -5,6 +5,10 @@
 // renderer on a small canvas, feeds every scene a few seconds of synthetic music (a steady kick,
 // hats, a moving spectrum) so trails and beat effects have built up, and posts the frame back
 // here. Pass scene ids to redo only those:  npm run thumbs -- koi garden
+//
+// With --og it makes the bigger pictures for the scene pages and their link previews instead:
+// public/scenes/og/<id>.jpg, 1200×630, the same kind of frame with the name in a corner. The
+// catalogue does not change for those.
 import http from 'node:http';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
@@ -15,8 +19,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const THUMBS = path.join(PUBLIC_DIR, 'scenes', 'thumbs');
 const PORT = Number(process.env.PORT) || 4779;
-const ONLY = process.argv.slice(2).filter((a) => /^[a-z0-9-]+$/.test(a));
-const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
+const OG = process.argv.includes('--og');
+const OG_DIR = path.join(PUBLIC_DIR, 'scenes', 'og');
+const ONLY = process.argv.slice(2).filter((a) => /^[a-z0-9][a-z0-9-]*$/.test(a));
+const MIME = { '.jpg': 'image/jpeg', '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
 
 const PAGE = `<!doctype html><meta charset="utf-8"><title>thumbs</title>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
@@ -29,11 +35,13 @@ import { PALETTES } from '/js/gfx/palettes.js';
 import { SPECTRUM_BINS as N, HIST_W, HIST_H } from '/js/audio/analysis.js';
 
 const only = ${JSON.stringify(ONLY)};
+const og = ${OG};
 const status = document.getElementById('status');
 const registry = new SceneRegistry();
 await registry.refreshCatalog();
 const renderer = new Renderer(document.getElementById('c'), registry);
 renderer.look.hueDrift = false;
+if (og) renderer.setFixedSize({ w: 1200, h: 630 });
 try { await document.fonts.load('78px Michroma'); } catch {}
 const text = Object.assign(document.createElement('canvas'), { width: 1024, height: 256 });
 const tc = text.getContext('2d');
@@ -41,6 +49,8 @@ tc.fillStyle = '#fff'; tc.textAlign = 'center'; tc.textBaseline = 'middle'; tc.f
 tc.fillText('VISULASERZ', 512, 128);
 renderer.setText(text);
 renderer.extra.uProgress = 0.62;
+renderer.extra.uElapsed = 131;
+renderer.extra.uDuration = 211;
 
 // A few seconds of music that never happened: 120 BPM, kick on the beat, hats on the off-beats.
 function music() {
@@ -105,8 +115,23 @@ for (const [i, entry] of entries.entries()) {
     // Stop 0.12 s after a kick, on an even beat (some scenes only fire on those); long trails need longer to draw.
     const frames = scene.trails > 0.9 ? 637 : 217;
     for (let f = 0; f < frames; f++) { an.step(1 / 60); renderer.fade = 1; renderer.render(an, 1 / 60); }
-    const blob = await new Promise((resolve) => renderer.canvas.toBlob(resolve, 'image/webp', 0.82));
-    const res = await fetch('/__save?id=' + entry.id, { method: 'POST', headers: { 'Content-Type': 'image/webp' }, body: blob });
+    let picture = renderer.canvas;
+    if (og) {
+      // copied out in the same task as the last frame, before the browser clears the drawing buffer
+      picture = Object.assign(document.createElement('canvas'), { width: 1200, height: 630 });
+      const pc = picture.getContext('2d');
+      pc.drawImage(renderer.canvas, 0, 0, 1200, 630);
+      pc.font = '400 17px Michroma, sans-serif';
+      if ('letterSpacing' in pc) pc.letterSpacing = '4px';
+      pc.textAlign = 'right';
+      pc.shadowColor = 'rgba(0,0,0,0.8)';
+      pc.shadowBlur = 14;
+      pc.fillStyle = 'rgba(255,255,255,0.86)';
+      pc.fillText('VISULASERZ', 1160, 594);
+    }
+    const type = og ? 'image/jpeg' : 'image/webp';
+    const blob = await new Promise((resolve) => picture.toBlob(resolve, type, og ? 0.84 : 0.82));
+    const res = await fetch('/__save?id=' + entry.id + (og ? '&og=1' : ''), { method: 'POST', headers: { 'Content-Type': type }, body: blob });
     if (!res.ok) throw new Error('save failed: HTTP ' + res.status);
     const fig = document.createElement('figure');
     fig.innerHTML = '<img><figcaption></figcaption>';
@@ -136,19 +161,23 @@ http.createServer(async (req, res) => {
     if (req.method === 'POST' && p === '/__save') {
       const id = url.searchParams.get('id') || '';
       if (!/^[a-z0-9-]+$/.test(id) || !fs.existsSync(path.join(PUBLIC_DIR, 'scenes', `${id}.js`))) { res.writeHead(400); return res.end(); }
+      const big = url.searchParams.get('og') === '1';
       const chunks = [];
       let size = 0;
-      for await (const c of req) { size += c.length; if (size > 400 * 1024) { res.writeHead(413); return res.end(); } chunks.push(c); }
+      for await (const c of req) { size += c.length; if (size > (big ? 700 : 400) * 1024) { res.writeHead(413); return res.end(); } chunks.push(c); }
       const body = Buffer.concat(chunks);
-      if (body.subarray(0, 4).toString('latin1') !== 'RIFF' || body.subarray(8, 12).toString('latin1') !== 'WEBP') { res.writeHead(415); return res.end(); }
-      await fsp.mkdir(THUMBS, { recursive: true });
-      await fsp.writeFile(path.join(THUMBS, `${id}.webp`), body);
-      console.log(`  ${id}.webp  ${Math.round(size / 1024)} KB`);
+      const jpeg = body[0] === 0xff && body[1] === 0xd8 && body[2] === 0xff;
+      const webp = body.subarray(0, 4).toString('latin1') === 'RIFF' && body.subarray(8, 12).toString('latin1') === 'WEBP';
+      if (big ? !jpeg : !webp) { res.writeHead(415); return res.end(); }
+      const dir = big ? OG_DIR : THUMBS, name = `${id}.${big ? 'jpg' : 'webp'}`;
+      await fsp.mkdir(dir, { recursive: true });
+      await fsp.writeFile(path.join(dir, name), body);
+      console.log(`  ${name}  ${Math.round(size / 1024)} KB`);
       res.writeHead(204);
       return res.end();
     }
     if (req.method === 'POST' && p === '/__done') {
-      await import(`${pathToFileURL(path.join(ROOT, 'scripts', 'build-catalog.js')).href}?t=${Date.now()}`);
+      if (!OG) await import(`${pathToFileURL(path.join(ROOT, 'scripts', 'build-catalog.js')).href}?t=${Date.now()}`);
       res.writeHead(204);
       res.end();
       console.log('\nDone. You can close the tab and stop this script (Ctrl+C).');
@@ -166,4 +195,4 @@ http.createServer(async (req, res) => {
     res.writeHead(e.code === 'ENOENT' || e.code === 'EISDIR' ? 404 : 500);
     res.end();
   }
-}).listen(PORT, '127.0.0.1', () => console.log(`Open http://localhost:${PORT} in a browser with WebGL2 and keep the tab in front.${ONLY.length ? `\nOnly: ${ONLY.join(', ')}` : ''}\n`));
+}).listen(PORT, '127.0.0.1', () => console.log(`Open http://localhost:${PORT} in a browser with WebGL2 and keep the tab in front.${OG ? ' Link-preview pictures (1200×630) go to public/scenes/og/.' : ''}${ONLY.length ? `\nOnly: ${ONLY.join(', ')}` : ''}\n`));

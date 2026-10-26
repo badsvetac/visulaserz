@@ -1,0 +1,14 @@
+.git
+node_modules
+.venv
+cache
+data
+dist
+.build-cache
+.claude
+.env
+.env.*
+*.log
+*.zip
+*.tar.gz
+**/__pycache__

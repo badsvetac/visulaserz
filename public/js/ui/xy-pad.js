@@ -1,5 +1,6 @@
 import { el, clamp } from '../util.js';
 import { FX_PARAMS } from '../audio/params.js';
+import { registerSurface } from '../control/targets.js';
 
 // A Kaoss-style performance pad: one finger bends two parameters at once, and lets go of
 // them again. The spring-back is the whole point — you can dive into a filter sweep during
@@ -89,18 +90,21 @@ export function buildXYPad({ engine, onChange, lcdShow }) {
     return { x: (e.clientX - r.left) / r.width, y: 1 - (e.clientY - r.top) / r.height };
   };
 
-  surface.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    surface.setPointerCapture(e.pointerId);
+  // a finger, a MIDI knob, a stick or a hand in the air all come down, move and lift the same way
+  function touch(p) {
     const m = XY_MODES[mode];
     holding = true;
     spring = null;
     base = { [m.x]: engine.fx[m.x], [m.y]: engine.fx[m.y] };
     surface.classList.add('is-held');
-    const p = at(e);
     writeAt(p.x, p.y);
     lcdShow?.('pad', XY_MODES[mode].name);
+  }
+  surface.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    try { surface.setPointerCapture(e.pointerId); } catch { /* the pointer is gone */ }
+    touch(at(e));
   });
   surface.addEventListener('pointermove', (e) => {
     if (!holding) return;
@@ -121,6 +125,7 @@ export function buildXYPad({ engine, onChange, lcdShow }) {
   surface.addEventListener('pointerup', lift);
   surface.addEventListener('pointercancel', lift);
   surface.addEventListener('lostpointercapture', lift);
+  registerSurface(surface, { down: touch, move: (p) => { if (holding) writeAt(p.x, p.y); }, up: () => lift() });
 
   refreshLabels();
   syncToKnobs();

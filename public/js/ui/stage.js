@@ -98,8 +98,10 @@ export function buildStage({ engine, analysis, renderer, toast, lcdShow }) {
     }
   }
   engine.addEventListener('live', () => { liveStatus.textContent = engine.live ? `listening: ${engine.liveLabel}` : 'off'; });
+  // Phones and some browsers have no screen sharing at all, so there the key could only say it failed.
+  const canShareScreen = !!navigator.mediaDevices?.getDisplayMedia;
   const liveRow = el('div', { class: 'stage-row' },
-    el('button', { class: 'key', type: 'button', onclick: () => listen('computer'), title: 'Visualise whatever this computer is playing (Spotify, a game, a call)' }, el('span', { class: 'led' }), 'This computer'),
+    canShareScreen ? el('button', { class: 'key', type: 'button', onclick: () => listen('computer'), title: 'Visualise whatever this computer is playing (Spotify, a game, a call)' }, el('span', { class: 'led' }), 'This computer') : null,
     el('button', { class: 'key', type: 'button', onclick: () => listen('mic'), title: 'Visualise the microphone' }, el('span', { class: 'led' }), 'Microphone'),
     el('button', { class: 'key key-ghost', type: 'button', onclick: () => engine.stopLive() }, 'Stop'),
     liveStatus,

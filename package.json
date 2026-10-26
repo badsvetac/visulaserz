@@ -2,17 +2,28 @@
   "name": "visulaserz",
   "version": "1.0.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
+  "repository": "github:badsvetac/visulaserz",
   "type": "module",
   "description": "Audio-reactive laser/visual show with a slowed+reverb FX rack. Plays local files and YouTube audio.",
   "scripts": {
     "start": "node server.js",
     "web": "node scripts/web-preview.js",
     "catalog": "node scripts/build-catalog.js",
+    "tools": "node scripts/build-tool-catalog.js",
     "thumbs": "node scripts/make-thumbs.js",
     "setup": "node scripts/setup.js",
-    "update-ytdlp": "node scripts/setup.js"
+    "update-ytdlp": "node scripts/setup.js",
+    "portable": "node scripts/build-portable.js",
+    "build:production": "node scripts/build-production.mjs",
+    "test:production": "node scripts/test-production.mjs",
+    "test:browser": "node scripts/test-browser.mjs"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "acorn": "8.15.0",
+    "esbuild": "0.28.2"
   }
 }

@@ -4,6 +4,10 @@ import { el } from '../util.js';
 // used the mouse, a finger, or the keyboard. Getting the release right is most of the work —
 // a pad that sticks down because the pointer left the button is a stuck kill on a live show,
 // so blur, pointercancel and lost capture all count as "let go".
+// Every pad on the page, by its element: a MIDI controller that has learnt one finds it here.
+const byElement = new WeakMap();
+export const padOf = (node) => byElement.get(node);
+
 export function makePad({ label, key, keyLabel = key, hint, start, stop = () => {}, cls = '', toggle = false }) {
   const node = el('button', { class: `pad ${cls}`, type: 'button', title: hint, 'aria-pressed': 'false' },
     el('span', { class: 'led' }), el('span', { class: 'pad-label' }, label), el('span', { class: 'pad-key' }, keyLabel));
@@ -39,7 +43,7 @@ export function makePad({ label, key, keyLabel = key, hint, start, stop = () => 
   node.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') release(); });
   node.addEventListener('blur', release);
 
-  return {
+  const pad = {
     node,
     key,
     press,
@@ -53,4 +57,6 @@ export function makePad({ label, key, keyLabel = key, hint, start, stop = () => 
       stop();
     },
   };
+  byElement.set(node, pad);
+  return pad;
 }

@@ -5,18 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#07070b">
-  <meta name="description" content="A music visualiser you can play: laser shows, night drives and space flights that move to your track, a slowed + reverb rack, animated lyrics, and one-click video recording. Runs in your browser.">
-  <meta property="og:title" content="Visulaserz">
-  <meta property="og:description" content="Drop a track, shape the sound, pick a scene, animate the lyrics, record the clip. All in your browser.">
+  <title>Visulaserz — Music Visualizer, Lyric Videos and an Online DAW</title>
+  <meta name="description" content="A music visualizer you can play: scenes that move with your track, timed lyrics, slowed + reverb, an online DAW and MP4 export. Free, in your browser.">
+  <link rel="canonical" href="https://visulaserz.com/">
+  <link rel="alternate" hreflang="en" href="https://visulaserz.com/">
+  <link rel="alternate" hreflang="tr" href="https://visulaserz.com/tr">
+  <link rel="alternate" hreflang="x-default" href="https://visulaserz.com/">
   <meta property="og:type" content="website">
-  <title>Visulaserz</title>
+  <meta property="og:site_name" content="Visulaserz">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Visulaserz — a music visualizer you can play">
+  <meta property="og:description" content="Drop a track, shape the sound, pick a scene, animate the lyrics, record the clip. All in your browser.">
+  <meta property="og:url" content="https://visulaserz.com/">
+  <meta property="og:image" content="https://visulaserz.com/og/site.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Visulaserz: scenes that move with the music">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://visulaserz.com/#website","url":"https://visulaserz.com/","name":"Visulaserz","inLanguage":"en"},{"@type":"WebApplication","@id":"https://visulaserz.com/#app","name":"Visulaserz","url":"https://visulaserz.com/","image":"https://visulaserz.com/og/site.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Any","browserRequirements":"A current browser with WebGL 2","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A music visualizer you can play: scenes that move with your track, timed lyrics, slowed + reverb, an online DAW and MP4 export for TikTok, Reels and YouTube.","featureList":["Music visualizer scenes that react to the beat","Timed, animated lyrics","Slowed + reverb, nightcore and lo-fi presets","An FL Studio-style studio locked to the song's tempo and key","Video export in 9:16, 16:9 and 1:1"]}]}</script>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <!-- a phone's home screen: the app opens full screen from there (iPhone has no fullscreen button otherwise) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Visulaserz">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Saira+Semi+Condensed:wght@400;500;600&family=Martian+Mono:wght@400;500&family=Bebas+Neue&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dj.css">
+  <link rel="stylesheet" href="css/account.css">
+  <link rel="stylesheet" href="css/tools.css">
 </head>
 <body>
+  <button id="account-open" class="btn account-launcher panel-fade" type="button" aria-haspopup="dialog" hidden>Sign in / Join</button>
+  <dialog id="account-dialog" class="account-dialog" aria-label="Visulaserz account">
+    <button id="account-close" class="account-close" type="button" aria-label="Close account">×</button>
+    <p class="legend">VISULASERZ / YOUR SPACE</p>
+    <div id="account-content"></div>
+  </dialog>
   <canvas id="stage" aria-hidden="true"></canvas>
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -46,6 +75,7 @@
       <button class="btn" type="button" data-action="files">Open audio files</button>
       <button class="btn" type="button" data-action="crate">YouTube</button>
     </div>
+    <!-- site-links: the production build puts links to the site's pages here -->
   </div>
 
   <header class="marquee panel-fade">
@@ -65,7 +95,7 @@
       <button class="icon-btn" id="crate-close" type="button" aria-label="Close the crate"></button>
     </div>
     <form class="yt-form" id="yt-form" autocomplete="off">
-      <input id="yt-input" type="text" placeholder="Checking the local server…" spellcheck="false" aria-label="YouTube link or search">
+      <input id="yt-input" type="text" placeholder="Connecting to your studio…" spellcheck="false" aria-label="YouTube link or search">
       <button class="btn btn-primary" type="submit">Load</button>
     </form>
     <p class="hint" id="yt-hint" hidden></p>
@@ -85,7 +115,8 @@
       <p class="empty" id="queue-empty">Nothing queued yet. Files you drop anywhere on the page land here.</p>
     </section>
     <section class="crate-section" id="saved-section" hidden>
-      <h3 class="legend">Saved from YouTube</h3>
+      <h3 class="legend">Your YouTube track list</h3>
+      <p class="muted" id="temporary-audio-note" hidden>Audio stays while selected, including when paused. Switching tracks or signing out clears it.</p>
       <ul class="list" id="saved"></ul>
     </section>
     <section class="crate-section" id="lyrics-section">
@@ -97,6 +128,7 @@
       </form>
       <div class="crate-actions">
         <button class="btn" type="button" id="lyrics-paste">Paste LRC</button>
+        <button class="btn" type="button" id="lyrics-tap" title="Time the words yourself: tap once as each line starts">Tap sync</button>
       </div>
       <textarea id="lyrics-text" class="lrc-text" rows="6" hidden placeholder="[00:12.30] first line&#10;[00:16.80] next line…" spellcheck="false"></textarea>
       <button class="btn btn-primary" type="button" id="lyrics-apply" hidden>Use these lyrics</button>
@@ -108,6 +140,10 @@
       <h2 class="legend">Market</h2>
       <span class="market-count" id="market-count"></span>
       <button class="icon-btn" id="market-close" type="button" aria-label="Close the market"></button>
+    </div>
+    <div class="market-tabs" role="tablist" aria-label="Shelves">
+      <button class="market-tab is-active" role="tab" type="button" data-shelf="scenes" aria-selected="true">Scenes</button>
+      <button class="market-tab" role="tab" type="button" data-shelf="tools" aria-selected="false">Tools</button>
     </div>
     <input class="market-search" id="market-search" type="search" placeholder="Search scenes: space, rain, retro…" spellcheck="false" autocomplete="off" aria-label="Search scenes">
     <div class="chips" id="market-filters" role="group" aria-label="Filter the market"></div>
@@ -133,6 +169,8 @@
         <button class="tab" role="tab" type="button" data-unit="vision" aria-selected="false">Vision</button>
         <button class="tab" role="tab" type="button" data-unit="perform" aria-selected="false">Perform</button>
         <button class="tab" role="tab" type="button" data-unit="stage" aria-selected="false">Stage</button>
+        <button class="tab" role="tab" type="button" data-unit="clip" aria-selected="false">Clip</button>
+        <button class="tab" role="tab" type="button" data-unit="control" aria-selected="false">Control</button>
       </div>
       <div class="vu" id="vu" aria-hidden="true"></div>
       <div class="lcd" id="lcd" aria-live="off">
@@ -145,6 +183,8 @@
     <div class="rack-unit" id="unit-vision" role="tabpanel" hidden></div>
     <div class="rack-unit" id="unit-perform" role="tabpanel" hidden></div>
     <div class="rack-unit" id="unit-stage" role="tabpanel" hidden></div>
+    <div class="rack-unit" id="unit-clip" role="tabpanel" hidden></div>
+    <div class="rack-unit" id="unit-control" role="tabpanel" hidden></div>
   </section>
 
   <footer class="deck panel-fade">
@@ -161,15 +201,16 @@
         <div class="seek-fill" id="seek-fill"></div>
       </div>
       <span class="time" id="t-dur">0:00</span>
+      <button class="icon-btn" id="btn-loop" type="button" aria-label="Loop the track" aria-pressed="false" title="Loop (L)"></button>
     </div>
     <div class="deck-right">
-      <button class="icon-btn" id="btn-loop" type="button" aria-label="Loop the track" aria-pressed="false" title="Loop (L)"></button>
       <label class="vol" title="Volume (↑ ↓)">
         <span id="vol-icon" class="vol-icon"></span>
         <input type="range" id="vol" min="0" max="1" step="0.01" value="0.85" aria-label="Volume">
       </label>
       <button class="rec" id="btn-rec" type="button" aria-pressed="false" title="Record the show to a video (V)"><span>REC</span></button>
       <button class="icon-btn" id="btn-export" type="button" aria-label="Export this edit as WAV" title="Export WAV (E)"></button>
+      <button class="icon-btn" id="btn-dj" type="button" aria-label="DJ decks" title="DJ decks (D)"></button>
       <button class="icon-btn" id="btn-rack" type="button" aria-label="Show or hide the rack" title="Rack (R)"></button>
       <button class="icon-btn" id="btn-hide" type="button" aria-label="Hide the controls" title="Hide controls (H)"></button>
       <button class="icon-btn" id="btn-full" type="button" aria-label="Fullscreen" title="Fullscreen (F)"></button>
@@ -195,12 +236,24 @@
         <dt>\</dt><dd>Panic: release every held effect</dd>
         <dt>⏎ J</dt><dd>Drop (manual beat) · Snapshot</dd>
         <dt>I O U</dt><dd>Loop start · loop end · clear loop</dd>
-        <dt>K</dt><dd>Scene market: try, add and remove scenes</dd>
+        <dt>K</dt><dd>Market: scenes for the picture, tools for the sound</dd>
+        <dt>Tools</dt><dd>Drag one by its header to put it anywhere. Click it and its own keys play it; Esc hands the keys back</dd>
+        <dt>Control</dt><dd>A MIDI controller, a gamepad or your hand in the air: Learn, touch a control, move one on the controller</dd>
         <dt>C R H</dt><dd>Crate · Rack · Hide controls</dd>
         <dt>F</dt><dd>Fullscreen</dd>
         <dt>V E</dt><dd>Record video · Export WAV</dd>
         <dt>L M N</dt><dd>Loop track · Mute · Next track</dd>
+        <dt>D</dt><dd>DJ decks (Shift+D: debug overlay)</dd>
         <dt>?</dt><dd>This list</dd>
+      </dl>
+      <h2 class="legend help-sub">While the DJ decks are open</h2>
+      <dl>
+        <dt>Z X S</dt><dd>Deck A: cue (hold) · play · sync</dd>
+        <dt>N M J</dt><dd>Deck B: cue (hold) · play · sync</dd>
+        <dt>1–4 Q–R</dt><dd>Deck A pads</dd>
+        <dt>7–0 U–P</dt><dd>Deck B pads</dd>
+        <dt>← →</dt><dd>Crossfader (Shift: all the way)</dd>
+        <dt>Space</dt><dd>Play / pause the deck on air</dd>
       </dl>
     </div>
   </div>
@@ -211,5 +264,6 @@
   <input type="file" id="file-input" accept="audio/*,.mp3,.wav,.ogg,.oga,.opus,.flac,.m4a,.aac,.webm" multiple hidden>
 
   <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/ui/account.js"></script>
 </body>
 </html>
